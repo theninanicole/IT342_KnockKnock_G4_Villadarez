@@ -10,10 +10,9 @@ body, html {
   width: 100%;
   height: 100%;
   font-family: 'Inter', sans-serif;
-  background-color: #f0f2f5; /* Subtle gray background */
+  background-color: #f0f2f5; 
 }
 
-/* Centering the card on the screen */
 .auth-container {
   display: flex;
   justify-content: center;
@@ -23,17 +22,15 @@ body, html {
   padding: 20px;
 }
 
-/* Bigger Card Design */
 .auth-card {
   width: 100%;
-  max-width: 480px; /* Increased width */
+  max-width: 480px; 
   background: white;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
-/* Header Section */
 .auth-header {
   background-color: #2d6df6;
   padding: 50px 30px 40px;
@@ -65,12 +62,10 @@ body, html {
   opacity: 0.9;
 }
 
-/* Content Padding */
 .auth-content {
   padding: 30px;
 }
 
-/* Tabs */
 .auth-tabs {
   background: #f1f5f9;
   padding: 5px;
@@ -118,6 +113,7 @@ body, html {
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
   background: #fdfdfd;
+  color: #1e293b;
   font-size: 16px;
   outline: none;
   transition: all 0.2s;

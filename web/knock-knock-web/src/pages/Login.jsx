@@ -1,29 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
-import axios from "axios";
-import { loginUser } from "../services/apiServices";
+import { AuthContext } from "../context/AuthContext";
+import { handleLoginSubmit } from "../services/authHandlers";
 import "./auth.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    try {
-      const user = await loginUser({ email, password });
-
-      localStorage.setItem("user", JSON.stringify(user));
-
-      if (user.role === "VISITOR") navigate("/visitor-dashboard");
-      else if (user.role === "ADMIN") navigate("/admin-dashboard");
-
-    } catch (err) {
-      alert("Login failed");
-    }
+    handleLoginSubmit({ email, password, login, navigate });
   };
 
   return (

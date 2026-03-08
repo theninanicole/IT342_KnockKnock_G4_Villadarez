@@ -1,17 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
-import axios from "axios";
-import { registerVisitor, registerAdmin } from "../services/apiServices";
+import { AuthContext } from "../context/AuthContext";
+import { handleRegisterSubmit } from "../services/authHandlers";
 import "./auth.css";
 
 export default function Register() {
-  const [userRole, setUserRole] = useState("visitor"); // 'visitor' or 'admin'
+  const [userRole, setUserRole] = useState("visitor"); 
   const [formData, setFormData] = useState({
     fullName: "", email: "", contactNumber: "", password: "", confirmPassword: "",
     condoName: "", condoAddress: "", condoContact: ""
   });
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -19,20 +20,7 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
         e.preventDefault();
-
-        try {
-            if (userRole === "visitor") {
-            await registerVisitor(formData);
-            } else {
-            await registerAdmin(formData);
-            }
-
-            alert("Registration successful!");
-            navigate("/");
-
-        } catch (err) {
-            alert("Registration failed");
-        }
+        handleRegisterSubmit({ userRole, formData, login, navigate });
     };
 
 
