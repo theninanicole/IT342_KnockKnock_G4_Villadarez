@@ -105,6 +105,15 @@ export default function Register() {
             </button>
           </form>
 
+          <div className="divider"><span>OR CONTINUE WITH</span></div>
+          <button type="button" className="google-btn">
+            <img
+              src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg"
+              alt="Google"
+            />
+            Google Account
+          </button>
+
           <p className="signup-text">
             Already have an account? <Link to="/" className="link">Sign In</Link>
           </p>
