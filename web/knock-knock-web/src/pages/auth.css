@@ -255,6 +255,7 @@ body, html {
   display: flex;
   background: #f1f5f9; /* Light grey background for the track */
   padding: 4px;
+  gap: 6px; /* small gap so outlines don't overlap */
   border-radius: 12px;
   margin-bottom: 25px;
 }
@@ -273,6 +274,11 @@ body, html {
   transition: all 0.2s ease;
 }
 
+.role-tab:focus,
+.role-tab:focus-visible {
+  outline: none;
+}
+
 /* The active state - White card effect */
 .role-tab.active {
   background: white !important; /* Force white background */
@@ -284,6 +290,8 @@ body, html {
 .role-tab:hover {
   background: rgba(255, 255, 255, 0.5);
   color: #2d6df6;
+  outline: 2px solid #2d6df6; /* blue outline only on hover */
+  outline-offset: -2px; /* keep outline inside to avoid overlap */
 }
 
 /* Fix for the primary "Create Account" button */
