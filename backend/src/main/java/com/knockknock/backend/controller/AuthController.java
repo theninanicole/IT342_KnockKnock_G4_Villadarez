@@ -1,7 +1,9 @@
 package com.knockknock.backend.controller;
 
 import com.knockknock.backend.dto.LoginRequest;
+import com.knockknock.backend.dto.GoogleTokenRequest;
 import com.knockknock.backend.dto.RegisterCondoAdminRequest;
+import com.knockknock.backend.dto.RegisterCondoAdminGoogleRequest;
 import com.knockknock.backend.dto.RegisterVisitorRequest;
 import com.knockknock.backend.service.AuthService;
 
@@ -28,10 +30,24 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
+    @PostMapping("/register/visitor/google")
+    public ResponseEntity<?> registerVisitorWithGoogle(
+            @Valid @RequestBody GoogleTokenRequest request) {
+        Object body = authService.registerVisitorWithGoogle(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
+    }
+
     @PostMapping("/register/condo-admin")
     public ResponseEntity<?> registerCondoAdmin(
             @Valid @RequestBody RegisterCondoAdminRequest request) {
         Object body = authService.registerCondoAdmin(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
+    }
+
+    @PostMapping("/register/condo-admin/google")
+    public ResponseEntity<?> registerCondoAdminWithGoogle(
+            @Valid @RequestBody RegisterCondoAdminGoogleRequest request) {
+        Object body = authService.registerCondoAdminWithGoogle(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
@@ -40,5 +56,11 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request) {
 
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/oauth/google")
+    public ResponseEntity<?> loginWithGoogle(
+            @Valid @RequestBody GoogleTokenRequest request) {
+        return ResponseEntity.ok(authService.loginWithGoogle(request));
     }
 }
