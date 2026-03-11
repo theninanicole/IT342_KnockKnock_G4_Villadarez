@@ -1,27 +1,55 @@
 package com.knockknock.backend.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name = "users")
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @UuidGenerator
+    @Column(name = "user_id", columnDefinition = "UUID")
+    private UUID id;
 
+    @Column(name = "full_name")
     private String fullName;
 
     @Column(unique = true)
     private String email;
 
+    @Column(name = "password_hash")
     private String password;
 
     private String role;
 
+    @Column(name = "contact_number")
+    private Long contactNumber;
+
+    @Column(name = "auth_provider")
+    private String authProvider;
+
+    @ManyToOne
+    @JoinColumn(name = "condo_id", referencedColumnName = "condo_id")
+    private Condo condo;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     public User() {}
 
-    public User(Long id, String fullName, String email, String password, String role) {
+    public User(UUID id, String fullName, String email, String password, String role) {
         this.id = id;
         this.fullName = fullName;
         this.email = email;
@@ -29,7 +57,7 @@ public class User {
         this.role = role;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
@@ -63,5 +91,45 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public Long getContactNumber() {
+        return contactNumber;
+    }
+
+    public void setContactNumber(Long contactNumber) {
+        this.contactNumber = contactNumber;
+    }
+
+    public String getAuthProvider() {
+        return authProvider;
+    }
+
+    public void setAuthProvider(String authProvider) {
+        this.authProvider = authProvider;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Condo getCondo() {
+        return condo;
+    }
+
+    public void setCondo(Condo condo) {
+        this.condo = condo;
     }
 }

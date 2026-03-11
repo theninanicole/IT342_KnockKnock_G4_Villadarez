@@ -5,6 +5,8 @@ import com.knockknock.backend.dto.RegisterCondoAdminRequest;
 import com.knockknock.backend.dto.RegisterVisitorRequest;
 import com.knockknock.backend.service.AuthService;
 
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,21 +23,21 @@ public class AuthController {
 
     @PostMapping("/register/visitor")
     public ResponseEntity<?> registerVisitor(
-            @RequestBody RegisterVisitorRequest request) {
-
-        return ResponseEntity.ok(authService.registerVisitor(request));
+            @Valid @RequestBody RegisterVisitorRequest request) {
+        Object body = authService.registerVisitor(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
     @PostMapping("/register/condo-admin")
     public ResponseEntity<?> registerCondoAdmin(
-            @RequestBody RegisterCondoAdminRequest request) {
-
-        return ResponseEntity.ok(authService.registerCondoAdmin(request));
+            @Valid @RequestBody RegisterCondoAdminRequest request) {
+        Object body = authService.registerCondoAdmin(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
-            @RequestBody LoginRequest request) {
+            @Valid @RequestBody LoginRequest request) {
 
         return ResponseEntity.ok(authService.login(request));
     }

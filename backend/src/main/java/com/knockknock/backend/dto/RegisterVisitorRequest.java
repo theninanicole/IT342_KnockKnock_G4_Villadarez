@@ -1,7 +1,7 @@
 package com.knockknock.backend.dto;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 public class RegisterVisitorRequest {
 
@@ -14,7 +14,23 @@ public class RegisterVisitorRequest {
     @NotBlank
     private String password;
 
+    private String contactNumber;
+    private String confirmPassword;
+
     public RegisterVisitorRequest() {}
+        public String getConfirmPassword() {
+            return confirmPassword;
+        }
+        public void setConfirmPassword(String confirmPassword) {
+            this.confirmPassword = confirmPassword;
+        }
+    public String getContactNumber() {
+        return contactNumber;
+    }
+
+    public void setContactNumber(String contactNumber) {
+        this.contactNumber = contactNumber;
+    }
 
     public String getFullName() {
         return fullName;
