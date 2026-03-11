@@ -1,0 +1,149 @@
+/* Layout Spanning Full Width */
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  min-width: 100vw; /* Ensure it spans the full viewport width */
+  width: 100%; /* Ensure full viewport width */
+  background-color: #f8fafc;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.content-inner {
+  padding: 32px;
+  width: 100%; /* Spans full width */
+  max-width: none; /* REMOVED 1200px limit to span whole width */
+  box-sizing: border-box;
+}
+
+/* Slimmer Welcome Card */
+.welcome-card {
+  background: #0E172A; /* Retained color */
+  color: white;
+  border-radius: 16px;
+  /* REDUCED PADDING: 24px top/bottom makes the card smaller */
+  padding: 24px 40px; 
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-text h1 {
+  margin: 0;
+  font-size: 28px; /* Slightly smaller font for smaller card */
+  font-weight: 700;
+}
+
+.new-visit-btn {
+  background: #2663EB; /* Retained color */
+  color: white;
+  border: none;
+  padding: 10px 20px; /* Slimmer padding for a smaller button */
+  border-radius: 8px;
+  font-weight: 600;
+  margin-top: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.welcome-illustration {
+  font-size: 48px;
+  opacity: 0.1; /* Subtle background icon as planned */
+  pointer-events: none;
+}
+
+.verification-card {
+  background: white;
+  padding: 48px;
+  border-radius: 16px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.verification-card h2 {
+  margin: 0 0 16px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #000;
+}
+
+.verification-card p {
+  margin: 0 0 24px;
+  font-size: 16px;
+  color: #475569;
+}
+
+.search-box-container {
+  display: flex;
+  justify-content: center; /* Centers the search group */
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  max-width: 850px;
+  margin-inline: auto;
+}
+
+.search-input-wrapper {
+  flex: 1;
+  background: #f1f5f9;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  height: 48px;
+}
+
+.search-input-wrapper input {
+  background: transparent;
+  border: none;
+  padding: 0 12px;
+  width: 100%;
+  font-size: 15px;
+  outline: none;
+}
+
+.icon-action-btn {
+  background: #2663EB; /* */
+  color: white;
+  border: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.verify-action-btn {
+  background: #0E172A; /* */
+  color: white;
+  border: none;
+  padding: 0 32px;
+  height: 48px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dashboard-section h4 {
+  margin: 0 0 16px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #000;
+}
+
+.dashboard-section p {
+  margin: 0 0 24px;
+  font-size: 16px;
+  color: #475569;
+}
