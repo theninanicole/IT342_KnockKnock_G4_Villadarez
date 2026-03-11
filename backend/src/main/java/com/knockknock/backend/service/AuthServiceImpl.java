@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -103,6 +104,7 @@ public class AuthServiceImpl implements AuthService {
             User existingUser = existingByGoogleId.get();
             existingUser.setFullName(fullName);
             existingUser.setEmail(email);
+            ensureInternalPasswordForGoogleUser(existingUser);
             userRepository.save(existingUser);
             return buildAuthResponse(existingUser);
         }
@@ -115,6 +117,7 @@ public class AuthServiceImpl implements AuthService {
             }
             existingUser.setGoogleId(googleId);
             existingUser.setFullName(fullName);
+            ensureInternalPasswordForGoogleUser(existingUser);
             userRepository.save(existingUser);
             return buildAuthResponse(existingUser);
         }
@@ -125,6 +128,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRole("VISITOR");
         user.setAuthProvider("google");
         user.setGoogleId(googleId);
+        ensureInternalPasswordForGoogleUser(user);
         userRepository.save(user);
 
         return buildAuthResponse(user);
@@ -246,6 +250,7 @@ public class AuthServiceImpl implements AuthService {
         user.setAuthProvider("google");
         user.setGoogleId(googleId);
         user.setCondo(condo);
+        ensureInternalPasswordForGoogleUser(user);
         userRepository.save(user);
 
         String token = jwtUtils.generateJwtToken(user.getEmail());
@@ -311,6 +316,7 @@ public class AuthServiceImpl implements AuthService {
             User user = existingByGoogleId.get();
             user.setEmail(email);
             user.setFullName(fullName);
+            ensureInternalPasswordForGoogleUser(user);
             userRepository.save(user);
             return buildAuthResponse(user);
         }
@@ -323,6 +329,7 @@ public class AuthServiceImpl implements AuthService {
             }
             user.setGoogleId(googleId);
             user.setFullName(fullName);
+            ensureInternalPasswordForGoogleUser(user);
             userRepository.save(user);
             return buildAuthResponse(user);
         }
@@ -333,6 +340,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRole("VISITOR");
         user.setAuthProvider("google");
         user.setGoogleId(googleId);
+        ensureInternalPasswordForGoogleUser(user);
         userRepository.save(user);
 
         return buildAuthResponse(user);
@@ -390,5 +398,12 @@ public class AuthServiceImpl implements AuthService {
             return name.toString();
         }
         return payload.getEmail();
+    }
+
+    private void ensureInternalPasswordForGoogleUser(User user) {
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            String generatedRawPassword = "GOOGLE_" + UUID.randomUUID();
+            user.setPassword(passwordEncoder.encode(generatedRawPassword));
+        }
     }
 }
