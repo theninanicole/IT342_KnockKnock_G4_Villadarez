@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
-import { handleRegisterSubmit } from "../services/authHandlers";
+import { handleGoogleRegister, handleRegisterSubmit } from "../services/authHandlers";
 
 export default function Register() {
   const [userRole, setUserRole] = useState("visitor"); 
@@ -22,9 +22,13 @@ export default function Register() {
         handleRegisterSubmit({ userRole, formData, login, navigate });
     };
 
+  const onGoogleRegister = async () => {
+    await handleGoogleRegister({ userRole, formData, login, navigate });
+  };
+
 
   return (
-    <div className="min-h-screen bg-slate-100 flex justify-center items-start px-4 py-10">
+    <div className="min-h-screen bg-slate-100 flex justify-center items-center px-4 py-10">
       <div className="w-full max-w-xl bg-white rounded-2xl shadow-[0_20px_40px_rgba(15,23,42,0.18)] overflow-hidden">
         {/* Header Section */}
         <div className="bg-[#2d6df6] text-white text-center px-8 pt-12 pb-10">
@@ -191,6 +195,7 @@ export default function Register() {
 
           <button
             type="button"
+            onClick={onGoogleRegister}
             className="mb-6 flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white py-3.5 text-[15px] font-semibold text-slate-900 transition hover:bg-slate-50"
           >
             <img
