@@ -28,4 +28,24 @@ export const registerAdmin = async (adminData) => {
   return response.data;
 };
 
+export const loginWithGoogle = async (idToken) => {
+  const response = await api.post("/auth/oauth/google", { idToken });
+  return response.data;
+};
+
+export const registerVisitorWithGoogle = async (idToken) => {
+  const response = await api.post("/auth/register/visitor/google", { idToken });
+  return response.data;
+};
+
+export const registerAdminWithGoogle = async ({ idToken, condoName, condoAddress, condoContact }) => {
+  const response = await api.post("/auth/register/condo-admin/google", {
+    idToken,
+    condoName,
+    condoAddress,
+    condoContact,
+  });
+  return response.data;
+};
+
 export default api;
