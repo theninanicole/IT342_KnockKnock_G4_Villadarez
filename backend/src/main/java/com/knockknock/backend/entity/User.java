@@ -35,6 +35,9 @@ public class User {
     @Column(name = "auth_provider")
     private String authProvider;
 
+    @Column(name = "google_id", unique = true)
+    private String googleId;
+
     @ManyToOne
     @JoinColumn(name = "condo_id", referencedColumnName = "condo_id")
     private Condo condo;
@@ -107,6 +110,14 @@ public class User {
 
     public void setAuthProvider(String authProvider) {
         this.authProvider = authProvider;
+    }
+
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
     }
 
     public LocalDateTime getCreatedAt() {
