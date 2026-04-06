@@ -36,7 +36,7 @@ const loadGoogleScript = () =>
     document.head.appendChild(script);
   });
 
-const requestGoogleIdToken = async () => {
+export const requestGoogleIdToken = async () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   if (!clientId) {
     throw new Error("Google Client ID is not configured");
@@ -121,14 +121,17 @@ export const handleLoginSubmit = async ({ email, password, login, navigate }) =>
       email: apiUser.email,
       fullName: apiUser.fullName,
       role: apiUser.role,
+      condo: apiUser.condo || null,
     };
+
+    const jwtToken = data.token || localStorage.getItem("token");
 
     if (data.token) {
       localStorage.setItem("token", data.token);
     }
 
-    // Let AuthContext handle persisting user state
-    login(user);
+    // Pass user AND token to AuthContext so Supabase session is set up
+    await login(user, jwtToken);
 
     if (user.role === "VISITOR") {
       navigate("/visitor-dashboard");
@@ -154,19 +157,22 @@ export const handleRegisterSubmit = async ({ userRole, formData, login, navigate
     }
 
     const apiUser = data.user || data;
+    const jwtToken = data.token;
 
     const user = {
       id: apiUser.id,
       email: apiUser.email,
       fullName: apiUser.fullName,
       role: apiUser.role,
+      condo: apiUser.condo || null,
     };
 
     if (data.token) {
       localStorage.setItem("token", data.token);
     }
 
-    login(user);
+    // Pass user AND token to AuthContext so Supabase session is set up
+    await login(user, jwtToken);
 
     if (user.role === "VISITOR") {
       navigate("/visitor-dashboard");
@@ -185,19 +191,22 @@ export const handleGoogleLogin = async ({ login, navigate }) => {
     const idToken = await requestGoogleIdToken();
     const data = await loginWithGoogle(idToken);
     const apiUser = data.user || data;
+    const jwtToken = data.token;
 
     const user = {
       id: apiUser.id,
       email: apiUser.email,
       fullName: apiUser.fullName,
       role: apiUser.role,
+      condo: apiUser.condo || null,
     };
 
     if (data.token) {
       localStorage.setItem("token", data.token);
     }
 
-    login(user);
+    // Pass user AND token to AuthContext so Supabase session is set up
+    await login(user, jwtToken);
 
     if (user.role === "VISITOR") {
       navigate("/visitor-dashboard");
@@ -233,18 +242,21 @@ export const handleGoogleRegister = async ({ userRole, formData, login, navigate
     }
 
     const apiUser = data.user || data;
+    const jwtToken = data.token;
     const user = {
       id: apiUser.id,
       email: apiUser.email,
       fullName: apiUser.fullName,
       role: apiUser.role,
+      condo: apiUser.condo || null,
     };
 
     if (data.token) {
       localStorage.setItem("token", data.token);
     }
 
-    login(user);
+    // Pass user AND token to AuthContext so Supabase session is set up
+    await login(user, jwtToken);
 
     if (user.role === "VISITOR") {
       navigate("/visitor-dashboard");

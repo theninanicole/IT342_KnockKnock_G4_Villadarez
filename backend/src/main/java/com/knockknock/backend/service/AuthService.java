@@ -9,4 +9,5 @@ public interface AuthService {
     Object registerCondoAdminWithGoogle(RegisterCondoAdminGoogleRequest request);
     Object login(LoginRequest request);
     Object loginWithGoogle(GoogleTokenRequest request);
+    Object getCurrentUser(String token);
 }

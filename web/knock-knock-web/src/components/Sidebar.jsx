@@ -1,25 +1,40 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ShieldCheck,LayoutDashboard, CalendarDays, Bell, User, LogOut, History, ClipboardList } from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import "./Sidebar.css";
 import { AuthContext } from "../context/AuthContext";
+import { fetchNotifications } from "../services/apiServices";
 
 export default function Sidebar({ role }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useContext(AuthContext);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
+  useEffect(() => {
+    const loadUnread = async () => {
+      try {
+        const notifs = await fetchNotifications({ isRead: false, limit: 50 });
+        setUnreadCount(Array.isArray(notifs) ? notifs.length : 0);
+      } catch (e) {
+        console.error("[Sidebar] Failed to fetch unread notifications", e);
+      }
+    };
+
+    loadUnread();
+  }, []);
+
   const currentRole = role?.toUpperCase();
   const navItems = currentRole === "VISITOR" 
     ? [
         { name: "Dashboard", path: "/visitor-dashboard", icon: <LayoutDashboard size={20} /> },
         { name: "My Visits", path: "/my-visits", icon: <CalendarDays size={20} /> },
-        { name: "Notifications", path: "/notifications", icon: <Bell size={20} /> },
+        { name: "Notifications", path: "/notifications", icon: <Bell size={20} />, showBadge: true },
       ]
     : [
         { name: "Dashboard", path: "/admin-dashboard", icon: <LayoutDashboard size={20} /> },
@@ -46,12 +61,20 @@ export default function Sidebar({ role }) {
           >
             {item.icon}
             <span>{item.name}</span>
+            {item.showBadge && unreadCount > 0 && (
+              <span className="nav-badge">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </Link>
         ))}
       </div>
 
       <div className="sidebar-footer">
-        <Link to="/profile" className="nav-item">
+        <Link
+          to="/profile"
+          className={`nav-item ${location.pathname === "/profile" ? "active" : ""}`}
+        >
           <User size={20} />
           <span>Account</span>
         </Link>

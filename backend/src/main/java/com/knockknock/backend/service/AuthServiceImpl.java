@@ -11,6 +11,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 
+import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -84,7 +85,8 @@ public class AuthServiceImpl implements AuthService {
             user.getRole(),
             user.getContactNumber(),
             user.getAuthProvider(),
-            user.getCondo()
+            user.getCondo(),
+            user.getCreatedAt() != null ? user.getCreatedAt().toString() : null
         );
         return java.util.Map.of(
             "user", userResponse,
@@ -209,7 +211,8 @@ public class AuthServiceImpl implements AuthService {
                 user.getRole(),
                 user.getContactNumber(),
                 user.getAuthProvider(),
-                user.getCondo()
+            user.getCondo(),
+            user.getCreatedAt() != null ? user.getCreatedAt().toString() : null
         );
 
         return java.util.Map.of(
@@ -261,7 +264,8 @@ public class AuthServiceImpl implements AuthService {
                 user.getRole(),
                 user.getContactNumber(),
                 user.getAuthProvider(),
-                user.getCondo()
+            user.getCondo(),
+            user.getCreatedAt() != null ? user.getCreatedAt().toString() : null
         );
 
         return Map.of(
@@ -296,7 +300,8 @@ public class AuthServiceImpl implements AuthService {
             user.getRole(),
             user.getContactNumber(),
             user.getAuthProvider(),
-            user.getCondo()
+            user.getCondo(),
+            user.getCreatedAt() != null ? user.getCreatedAt().toString() : null
         );
         Map<String, Object> result = new HashMap<>();
         result.put("user", userResponse);
@@ -365,12 +370,37 @@ public class AuthServiceImpl implements AuthService {
                 user.getRole(),
                 user.getContactNumber(),
                 user.getAuthProvider(),
-                user.getCondo()
+            user.getCondo(),
+            user.getCreatedAt() != null ? user.getCreatedAt().toString() : null
         );
         return Map.of(
                 "user", userResponse,
                 "token", token
         );
+    }
+
+    @Override
+    public Object getCurrentUser(String token) {
+        try {
+            String email = jwtUtils.getUserEmailFromJwtToken(token);
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+            UserResponse userResponse = new UserResponse(
+                    user.getId(),
+                    user.getFullName(),
+                    user.getEmail(),
+                    user.getRole(),
+                    user.getContactNumber(),
+                    user.getAuthProvider(),
+                    user.getCondo(),
+                    user.getCreatedAt() != null ? user.getCreatedAt().toString() : null
+            );
+
+            return Map.of("user", userResponse);
+        } catch (JwtException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
     }
 
     private GoogleIdToken.Payload verifyGoogleToken(String idToken) {

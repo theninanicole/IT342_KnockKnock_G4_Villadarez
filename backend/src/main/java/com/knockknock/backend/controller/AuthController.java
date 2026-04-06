@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/auth")
@@ -62,5 +64,16 @@ public class AuthController {
     public ResponseEntity<?> loginWithGoogle(
             @Valid @RequestBody GoogleTokenRequest request) {
         return ResponseEntity.ok(authService.loginWithGoogle(request));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Missing or invalid Authorization header"));
+        }
+        String token = authHeader.substring(7);
+        Object body = authService.getCurrentUser(token);
+        return ResponseEntity.ok(body);
     }
 }
