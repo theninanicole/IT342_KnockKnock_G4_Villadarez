@@ -49,6 +49,16 @@ public class Notification {
         this.message = message;
     }
 
+    private Notification(Builder builder) {
+        this.notifId = builder.notifId;
+        this.user = builder.user;
+        this.type = builder.type;
+        this.title = builder.title;
+        this.message = builder.message;
+        this.isRead = builder.isRead;
+        this.createdAt = builder.createdAt;
+    }
+
     public UUID getNotifId() {
         return notifId;
     }
@@ -99,5 +109,70 @@ public class Notification {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private UUID notifId;
+        private User user;
+        private String type;
+        private String title;
+        private String message;
+        private boolean isRead;
+        private LocalDateTime createdAt;
+
+        public Builder notifId(UUID notifId) {
+            this.notifId = notifId;
+            return this;
+        }
+
+        public Builder user(User user) {
+            this.user = user;
+            return this;
+        }
+
+        public Builder type(String type) {
+            this.type = type;
+            return this;
+        }
+
+        public Builder title(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public Builder message(String message) {
+            this.message = message;
+            return this;
+        }
+
+        public Builder read(boolean read) {
+            this.isRead = read;
+            return this;
+        }
+
+        public Builder createdAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public Notification build() {
+            if (user == null) {
+                throw new IllegalStateException("user is required");
+            }
+            if (type == null || type.isBlank()) {
+                throw new IllegalStateException("type is required");
+            }
+            if (title == null || title.isBlank()) {
+                throw new IllegalStateException("title is required");
+            }
+            if (message == null || message.isBlank()) {
+                throw new IllegalStateException("message is required");
+            }
+            return new Notification(this);
+        }
     }
 }

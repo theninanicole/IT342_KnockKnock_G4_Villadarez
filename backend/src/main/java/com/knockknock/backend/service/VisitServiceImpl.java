@@ -3,21 +3,18 @@ package com.knockknock.backend.service;
 import com.knockknock.backend.entity.Visit;
 import com.knockknock.backend.entity.User;
 import com.knockknock.backend.entity.Condo;
-import com.knockknock.backend.entity.VisitStatusHistory;
-import com.knockknock.backend.entity.Notification;
+import com.knockknock.backend.event.VisitStatusChangedEvent;
 import com.knockknock.backend.dto.UpdateVisitRequest;
 import com.knockknock.backend.repository.VisitRepository;
 import com.knockknock.backend.repository.UserRepository;
 import com.knockknock.backend.repository.CondoRepository;
-import com.knockknock.backend.repository.VisitStatusHistoryRepository;
-import com.knockknock.backend.repository.NotificationRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,85 +24,16 @@ public class VisitServiceImpl implements VisitService {
     private final VisitRepository visitRepository;
     private final UserRepository userRepository;
     private final CondoRepository condoRepository;
-    private final VisitStatusHistoryRepository visitStatusHistoryRepository;
-    private final NotificationRepository notificationRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public VisitServiceImpl(VisitRepository visitRepository,
                             UserRepository userRepository,
                             CondoRepository condoRepository,
-                            VisitStatusHistoryRepository visitStatusHistoryRepository,
-                            NotificationRepository notificationRepository) {
+                            ApplicationEventPublisher eventPublisher) {
         this.visitRepository = visitRepository;
         this.userRepository = userRepository;
         this.condoRepository = condoRepository;
-        this.visitStatusHistoryRepository = visitStatusHistoryRepository;
-        this.notificationRepository = notificationRepository;
-    }
-
-    private void createVisitNotification(Visit visit, String eventType) {
-        if (visit == null || visit.getVisitor() == null) {
-            return;
-        }
-
-        String condoName = (visit.getCondo() != null && visit.getCondo().getName() != null)
-                ? visit.getCondo().getName()
-                : "your condominium";
-
-        String unitNumber = visit.getUnitNumber();
-        String unitLabel = (unitNumber != null && !unitNumber.isBlank())
-                ? "Unit " + unitNumber
-                : "your unit";
-
-        LocalDate date = visit.getVisitDate();
-        String formattedDate = null;
-        if (date != null) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy");
-            formattedDate = date.format(formatter);
-        }
-
-        String type;
-        String title;
-        String message;
-
-        switch (eventType) {
-            case "check_in":
-                type = "check_in";
-                title = "Welcome!";
-                message = "You've successfully checked into " + unitLabel + " at " + condoName + ". Enjoy your visit!";
-                break;
-            case "check_out":
-                type = "check_out";
-                title = "Check-out complete";
-                message = "You're all checked out of " + unitLabel + ". Have a great rest of your day!";
-                break;
-            case "scheduled":
-                type = "scheduled";
-                title = "Your visit is confirmed!";
-                String datePartScheduled = (formattedDate != null) ? formattedDate : "soon";
-                message = "You're all set to visit " + unitLabel + " at " + condoName + " on " + datePartScheduled + ".";
-                break;
-            case "cancelled":
-                type = "cancelled";
-                title = "Visit cancelled";
-                String datePartCancelled = (formattedDate != null) ? formattedDate : "the scheduled date";
-                message = "Your scheduled visit to " + unitLabel + " on " + datePartCancelled + " has been cancelled.";
-                break;
-            case "missed":
-                type = "missed";
-                title = "Looks like you missed a visit";
-                message = "Your scheduled visit to " + unitLabel + " was marked as missed. You can schedule a new one anytime.";
-                break;
-            default:
-                return;
-        }
-
-        Notification notification = new Notification(
-                visit.getVisitor(),
-                type,
-                title,
-                message
-        );
-        notificationRepository.save(notification);
+        this.eventPublisher = eventPublisher;
     }
 
     private void applyMissedStatusIfPast(Visit visit) {
@@ -125,28 +53,18 @@ public class VisitServiceImpl implements VisitService {
         boolean notCheckedIn = visit.getCheckInTime() == null;
 
         if (isScheduled && isPast && notCheckedIn) {
+            String previousStatus = visit.getStatus();
             visit.setStatus("MISSED");
             Visit saved = visitRepository.save(visit);
 
-            // Notify visitor about missed visit
-            createVisitNotification(saved, "missed");
+            eventPublisher.publishEvent(new VisitStatusChangedEvent(
+                    saved,
+                    previousStatus,
+                    saved.getStatus(),
+                    null,
+                    null,
+                    "missed"));
         }
-    }
-
-    private void recordStatusChange(Visit visit, String previousStatus, String newStatus,
-                                    String modifiedByName, String modifiedByRole) {
-        if (visit == null || newStatus == null) {
-            return;
-        }
-
-        VisitStatusHistory history = new VisitStatusHistory();
-        history.setVisit(visit);
-        history.setPreviousStatus(previousStatus);
-        history.setNewStatus(newStatus);
-        history.setModifiedByName(modifiedByName);
-        history.setModifiedByRole(modifiedByRole);
-
-        visitStatusHistoryRepository.save(history);
     }
 
     @Override
@@ -164,11 +82,25 @@ public class VisitServiceImpl implements VisitService {
         // Generate reference number with condo code
         String referenceNumber = generateReferenceNumber(condo.getCode());
 
-        Visit visit = new Visit(visitor, condo, referenceNumber, unitNumber, purposeOfVisit, parsedDate, "SCHEDULED");
+        Visit visit = Visit.builder()
+            .visitor(visitor)
+            .condo(condo)
+            .referenceNumber(referenceNumber)
+            .unitNumber(unitNumber)
+            .purpose(purposeOfVisit)
+            .visitDate(parsedDate)
+            .status("SCHEDULED")
+            .build();
         Visit saved = visitRepository.save(visit);
 
-        // Notify visitor about scheduled visit
-        createVisitNotification(saved, "scheduled");
+        // Publish domain event; observers handle history + notifications
+        eventPublisher.publishEvent(new VisitStatusChangedEvent(
+                saved,
+                null,
+                saved.getStatus(),
+                null,
+                null,
+                "scheduled"));
 
         return saved;
     }
@@ -334,10 +266,14 @@ public class VisitServiceImpl implements VisitService {
         visit.setCheckInTime(LocalDateTime.now());
         Visit saved = visitRepository.save(visit);
 
-        recordStatusChange(saved, previousStatus, saved.getStatus(), modifiedByName, modifiedByRole);
-
-        // Notify visitor about check-in
-        createVisitNotification(saved, "check_in");
+        // Publish domain event; observers handle history + notifications
+        eventPublisher.publishEvent(new VisitStatusChangedEvent(
+            saved,
+            previousStatus,
+            saved.getStatus(),
+            modifiedByName,
+            modifiedByRole,
+            "check_in"));
 
         return saved;
     }
@@ -362,10 +298,14 @@ public class VisitServiceImpl implements VisitService {
         visit.setCheckOutTime(LocalDateTime.now());
         Visit saved = visitRepository.save(visit);
 
-        recordStatusChange(saved, previousStatus, saved.getStatus(), modifiedByName, modifiedByRole);
-
-        // Notify visitor about check-out
-        createVisitNotification(saved, "check_out");
+        // Publish domain event; observers handle history + notifications
+        eventPublisher.publishEvent(new VisitStatusChangedEvent(
+            saved,
+            previousStatus,
+            saved.getStatus(),
+            modifiedByName,
+            modifiedByRole,
+            "check_out"));
 
         return saved;
     }

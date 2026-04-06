@@ -77,6 +77,22 @@ public class Visit {
         this.status = status;
     }
 
+    private Visit(Builder builder) {
+        this.visitId = builder.visitId;
+        this.visitor = builder.visitor;
+        this.condo = builder.condo;
+        this.referenceNumber = builder.referenceNumber;
+        this.unitNumber = builder.unitNumber;
+        this.purpose = builder.purpose;
+        this.visitDate = builder.visitDate;
+        this.status = builder.status;
+        this.checkInTime = builder.checkInTime;
+        this.checkOutTime = builder.checkOutTime;
+        this.qrImageUrl = builder.qrImageUrl;
+        this.visitFiles = builder.visitFiles;
+        this.createdAt = builder.createdAt;
+    }
+
     // Getters and Setters
     public UUID getVisitId() {
         return visitId;
@@ -180,5 +196,106 @@ public class Visit {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private UUID visitId;
+        private User visitor;
+        private Condo condo;
+        private String referenceNumber;
+        private String unitNumber;
+        private String purpose;
+        private LocalDate visitDate;
+        private String status;
+        private LocalDateTime checkInTime;
+        private LocalDateTime checkOutTime;
+        private String qrImageUrl;
+        private List<VisitFile> visitFiles;
+        private LocalDateTime createdAt;
+
+        public Builder visitId(UUID visitId) {
+            this.visitId = visitId;
+            return this;
+        }
+
+        public Builder visitor(User visitor) {
+            this.visitor = visitor;
+            return this;
+        }
+
+        public Builder condo(Condo condo) {
+            this.condo = condo;
+            return this;
+        }
+
+        public Builder referenceNumber(String referenceNumber) {
+            this.referenceNumber = referenceNumber;
+            return this;
+        }
+
+        public Builder unitNumber(String unitNumber) {
+            this.unitNumber = unitNumber;
+            return this;
+        }
+
+        public Builder purpose(String purpose) {
+            this.purpose = purpose;
+            return this;
+        }
+
+        public Builder visitDate(LocalDate visitDate) {
+            this.visitDate = visitDate;
+            return this;
+        }
+
+        public Builder status(String status) {
+            this.status = status;
+            return this;
+        }
+
+        public Builder checkInTime(LocalDateTime checkInTime) {
+            this.checkInTime = checkInTime;
+            return this;
+        }
+
+        public Builder checkOutTime(LocalDateTime checkOutTime) {
+            this.checkOutTime = checkOutTime;
+            return this;
+        }
+
+        public Builder qrImageUrl(String qrImageUrl) {
+            this.qrImageUrl = qrImageUrl;
+            return this;
+        }
+
+        public Builder visitFiles(List<VisitFile> visitFiles) {
+            this.visitFiles = visitFiles;
+            return this;
+        }
+
+        public Builder createdAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public Visit build() {
+            if (visitor == null) {
+                throw new IllegalStateException("visitor is required");
+            }
+            if (condo == null) {
+                throw new IllegalStateException("condo is required");
+            }
+            if (referenceNumber == null || referenceNumber.isBlank()) {
+                throw new IllegalStateException("referenceNumber is required");
+            }
+            if (status == null || status.isBlank()) {
+                throw new IllegalStateException("status is required");
+            }
+            return new Visit(this);
+        }
     }
 }
