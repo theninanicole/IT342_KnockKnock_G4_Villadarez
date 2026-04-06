@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "users")
@@ -35,8 +36,12 @@ public class User {
     @Column(name = "auth_provider")
     private String authProvider;
 
+    @Column(name = "google_id", unique = true)
+    private String googleId;
+
     @ManyToOne
     @JoinColumn(name = "condo_id", referencedColumnName = "condo_id")
+    @JsonIgnore
     private Condo condo;
 
     @CreationTimestamp
@@ -107,6 +112,14 @@ public class User {
 
     public void setAuthProvider(String authProvider) {
         this.authProvider = authProvider;
+    }
+
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
     }
 
     public LocalDateTime getCreatedAt() {

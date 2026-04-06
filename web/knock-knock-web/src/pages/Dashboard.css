@@ -147,3 +147,99 @@
   font-size: 16px;
   color: #475569;
 }
+
+/* Account / Profile layout */
+.account-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+.account-header-strip {
+  height: 120px;
+  background: #020617;
+}
+
+.account-body {
+  padding: 24px 28px 24px 28px;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+}
+
+.account-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.account-field input {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.account-value {
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.account-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.account-actions-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.primary-btn {
+  border-radius: 9999px;
+  border: none;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  background-color: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.account-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.email-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.google-icon {
+  width: 20px;
+  height: 20px;
+}
