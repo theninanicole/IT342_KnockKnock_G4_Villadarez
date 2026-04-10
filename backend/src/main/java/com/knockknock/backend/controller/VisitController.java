@@ -194,8 +194,41 @@ public class VisitController {
 
     @GetMapping("/reference/{referenceNumber}")
     public ResponseEntity<?> getVisitByReference(@PathVariable String referenceNumber) {
+        User currentUser = getCurrentUser();
+
         Visit visit = visitService.findByReferenceNumber(referenceNumber);
+        if (visit == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Visit not found");
+        }
+
+        if ("VISITOR".equalsIgnoreCase(currentUser.getRole())) {
+            if (visit.getVisitor() == null || !visit.getVisitor().getId().equals(currentUser.getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to view this visit");
+            }
+        } else if ("CONDOMINIUM_ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+            if (currentUser.getCondo() == null || currentUser.getCondo().getCondoId() == null ||
+                visit.getCondo() == null || visit.getCondo().getCondoId() == null ||
+                !visit.getCondo().getCondoId().equals(currentUser.getCondo().getCondoId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Visit does not belong to this condominium");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to view this visit");
+        }
+
         return ResponseEntity.ok(visit);
+    }
+
+    @PostMapping("/{visitId}/qr")
+    public ResponseEntity<?> generateVisitQr(@PathVariable String visitId) {
+        User currentUser = getCurrentUser();
+
+        Visit visit = visitService.getVisitById(UUID.fromString(visitId));
+        if (visit.getVisitor() == null || !visit.getVisitor().getId().equals(currentUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to generate QR for this visit");
+        }
+
+        Visit updated = visitService.generateQrForVisit(UUID.fromString(visitId));
+        return ResponseEntity.ok(updated);
     }
 
     @PostMapping("/{visitId}/check-in")

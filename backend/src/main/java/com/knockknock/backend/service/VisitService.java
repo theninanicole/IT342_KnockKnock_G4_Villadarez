@@ -18,4 +18,5 @@ public interface VisitService {
     Visit checkInVisit(UUID visitId, UUID adminCondoId, String modifiedByName, String modifiedByRole);
     Visit checkOutVisit(UUID visitId, UUID adminCondoId, String modifiedByName, String modifiedByRole);
     List<Visit> getVisitsByUserOrderedByDateDesc(UUID userId);
+    Visit generateQrForVisit(UUID visitId);
 }
