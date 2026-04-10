@@ -104,8 +104,10 @@ public class AuthServiceImpl implements AuthService {
         Optional<User> existingByGoogleId = userRepository.findByGoogleId(googleId);
         if (existingByGoogleId.isPresent()) {
             User existingUser = existingByGoogleId.get();
-            existingUser.setFullName(fullName);
             existingUser.setEmail(email);
+            if (existingUser.getFullName() == null || existingUser.getFullName().isBlank()) {
+                existingUser.setFullName(fullName);
+            }
             ensureInternalPasswordForGoogleUser(existingUser);
             userRepository.save(existingUser);
             return buildAuthResponse(existingUser);
@@ -118,7 +120,9 @@ public class AuthServiceImpl implements AuthService {
                 throw new OAuthProviderConflictException("Account exists with email/password. Please login using email and password.");
             }
             existingUser.setGoogleId(googleId);
-            existingUser.setFullName(fullName);
+            if (existingUser.getFullName() == null || existingUser.getFullName().isBlank()) {
+                existingUser.setFullName(fullName);
+            }
             ensureInternalPasswordForGoogleUser(existingUser);
             userRepository.save(existingUser);
             return buildAuthResponse(existingUser);
@@ -320,7 +324,9 @@ public class AuthServiceImpl implements AuthService {
         if (existingByGoogleId.isPresent()) {
             User user = existingByGoogleId.get();
             user.setEmail(email);
-            user.setFullName(fullName);
+            if (user.getFullName() == null || user.getFullName().isBlank()) {
+                user.setFullName(fullName);
+            }
             ensureInternalPasswordForGoogleUser(user);
             userRepository.save(user);
             return buildAuthResponse(user);
@@ -333,7 +339,9 @@ public class AuthServiceImpl implements AuthService {
                 throw new OAuthProviderConflictException("Account exists with email/password. Please login using email and password.");
             }
             user.setGoogleId(googleId);
-            user.setFullName(fullName);
+            if (user.getFullName() == null || user.getFullName().isBlank()) {
+                user.setFullName(fullName);
+            }
             ensureInternalPasswordForGoogleUser(user);
             userRepository.save(user);
             return buildAuthResponse(user);

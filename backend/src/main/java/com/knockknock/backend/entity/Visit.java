@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -63,6 +64,10 @@ public class Visit {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     // Constructors
     public Visit() {}
 
@@ -91,6 +96,7 @@ public class Visit {
         this.qrImageUrl = builder.qrImageUrl;
         this.visitFiles = builder.visitFiles;
         this.createdAt = builder.createdAt;
+        this.updatedAt = builder.updatedAt;
     }
 
     // Getters and Setters
@@ -198,6 +204,14 @@ public class Visit {
         this.createdAt = createdAt;
     }
 
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -216,6 +230,7 @@ public class Visit {
         private String qrImageUrl;
         private List<VisitFile> visitFiles;
         private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
 
         public Builder visitId(UUID visitId) {
             this.visitId = visitId;
@@ -279,6 +294,11 @@ public class Visit {
 
         public Builder createdAt(LocalDateTime createdAt) {
             this.createdAt = createdAt;
+            return this;
+        }
+
+        public Builder updatedAt(LocalDateTime updatedAt) {
+            this.updatedAt = updatedAt;
             return this;
         }
 

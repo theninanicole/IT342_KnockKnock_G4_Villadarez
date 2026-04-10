@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,15 +27,18 @@ public class VisitServiceImpl implements VisitService {
     private final UserRepository userRepository;
     private final CondoRepository condoRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final EmailService emailService;
 
     public VisitServiceImpl(VisitRepository visitRepository,
                             UserRepository userRepository,
                             CondoRepository condoRepository,
-                            ApplicationEventPublisher eventPublisher) {
+                            ApplicationEventPublisher eventPublisher,
+                            EmailService emailService) {
         this.visitRepository = visitRepository;
         this.userRepository = userRepository;
         this.condoRepository = condoRepository;
         this.eventPublisher = eventPublisher;
+        this.emailService = emailService;
     }
 
     private void applyMissedStatusIfPast(Visit visit) {
@@ -244,6 +249,31 @@ public class VisitServiceImpl implements VisitService {
 
         applyMissedStatusIfPast(visit);
         return visit;
+    }
+
+    @Override
+    public Visit generateQrForVisit(UUID visitId) {
+        Visit visit = visitRepository.findById(visitId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Visit not found"));
+
+        if (!"SCHEDULED".equalsIgnoreCase(visit.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "QR generation is not allowed for this visit status.");
+        }
+
+        String referenceNumber = visit.getReferenceNumber();
+        String encodedRef = URLEncoder.encode(referenceNumber, StandardCharsets.UTF_8);
+        String qrUrl = "https://quickchart.io/qr?text=" + encodedRef + "&size=300";
+
+        visit.setQrImageUrl(qrUrl);
+        Visit saved = visitRepository.save(visit);
+
+        User visitor = saved.getVisitor();
+        if (visitor != null && visitor.getEmail() != null && !visitor.getEmail().isBlank()) {
+            String visitorName = visitor.getFullName() != null ? visitor.getFullName() : "Visitor";
+            emailService.sendVisitConfirmationEmail(visitor.getEmail(), visitorName, saved.getReferenceNumber(), qrUrl);
+        }
+
+        return saved;
     }
 
     @Override
