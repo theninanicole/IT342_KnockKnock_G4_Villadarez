@@ -38,12 +38,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .cors(org.springframework.security.config.Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("GET", "/api/visits/files/visit/**").authenticated()
-                .requestMatchers("POST", "/api/visits/files").authenticated()
+                .requestMatchers("GET", "/api/visits/*/files/**").authenticated()
+                .requestMatchers("POST", "/api/visits/*/files").authenticated()
+                .requestMatchers("DELETE", "/api/visits/*/files/**").authenticated()
                 .anyRequest().authenticated()
             )
 
@@ -60,7 +62,7 @@ public class SecurityConfig {
             public void addCorsMappings(CorsRegistry registry) {
 
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173")
+                        .allowedOrigins("http://localhost:5173", "http://10.0.2.2:8080")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
