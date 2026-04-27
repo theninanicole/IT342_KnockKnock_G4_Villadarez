@@ -10,13 +10,13 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
+        <version>3.5.0</version>
         <relativePath/>
     </parent>
 
     <!-- Project Info -->
-    <groupId>com.knockknock</groupId>
-    <artifactId>backend</artifactId>
+    <groupId>edu.cit.villadarez</groupId>
+    <artifactId>knockknock</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>knockknock-backend</name>
     <description>Knock Knock Visitor Management Backend</description>

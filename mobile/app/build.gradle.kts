@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "edu.cit.villadarez.knockknock"
+    namespace = "edu.villadarez.knockknock"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "edu.cit.villadarez.knockknock"
+        applicationId = "edu.villadarez.knockknock"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -45,24 +45,21 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity)
 
-
-    // These two work together with the one above
-    implementation("androidx.appcompat:appcompat:1.6.1")
     // UI Components (Using latest Material 3)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
 
     // Retrofit & Networking
-    implementation("com.squareup.retrofit2:retrofit:2.11.0") // 3.0.0 is still in alpha/beta, 2.11.0 is safer
-    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.logging.interceptor)
 
     // Secure Storage for JWT
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation(libs.androidx.security.crypto)
 
     // Lifecycle (for Coroutines in Activities)
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0")
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
     // Testing
     testImplementation(libs.junit)
