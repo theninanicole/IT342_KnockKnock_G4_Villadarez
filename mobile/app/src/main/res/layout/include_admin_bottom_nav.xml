@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bottomNav"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:background="#FFFFFF"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="12dp"
+    android:paddingBottom="4dp">
+
+    <TextView
+        android:id="@+id/tabHome"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:drawableTop="@drawable/ic_home"
+        android:drawableTint="@color/nav_unselected"
+        android:drawablePadding="4dp"
+        android:gravity="center"
+        android:text="Home"
+        android:textColor="@color/nav_unselected"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/tabAllVisits"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:drawableTop="@drawable/ic_visits"
+        android:drawableTint="@color/nav_unselected"
+        android:drawablePadding="4dp"
+        android:gravity="center"
+        android:text="All Visits"
+        android:textColor="@color/nav_unselected"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/tabStatusHistory"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:drawableTop="@drawable/ic_notifications"
+        android:drawableTint="@color/nav_unselected"
+        android:drawablePadding="4dp"
+        android:gravity="center"
+        android:text="Status History"
+        android:textColor="@color/nav_unselected"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/tabAccount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:drawableTop="@drawable/ic_person"
+        android:drawableTint="@color/nav_unselected"
+        android:drawablePadding="4dp"
+        android:gravity="center"
+        android:text="Account"
+        android:textColor="@color/nav_unselected"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/tabLogout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:drawableTop="@drawable/ic_log_out"
+        android:drawableTint="@color/nav_unselected"
+        android:drawablePadding="4dp"
+        android:gravity="center"
+        android:text="Log out"
+        android:textColor="@color/nav_unselected"
+        android:textSize="12sp" />
+</LinearLayout>

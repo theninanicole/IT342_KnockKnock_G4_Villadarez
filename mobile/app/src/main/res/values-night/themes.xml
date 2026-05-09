@@ -3,5 +3,10 @@
     <style name="Base.Theme.KnockKnock" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="fontFamily">@font/inter</item>
+        <item name="android:textViewStyle">@style/AppTextView</item>
+        <item name="android:buttonStyle">@style/AppButton</item>
+        <item name="android:editTextStyle">@style/AppEditText</item>
     </style>
 </resources>

@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import { ShieldCheck, LayoutDashboard, CalendarDays, Bell, User, LogOut, History, ClipboardList } from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { AuthContext } from "@store/AuthContext";
-import { fetchNotifications } from "@api/apiServices";
+import { AuthContext } from "@context/AuthContext";
+import { fetchNotifications } from "@lib/apiServices";
 
 export default function Sidebar({ role }) {
   const navigate = useNavigate();

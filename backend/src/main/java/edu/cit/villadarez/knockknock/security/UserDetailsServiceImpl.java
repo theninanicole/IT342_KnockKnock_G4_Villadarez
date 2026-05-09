@@ -1,7 +1,6 @@
 package edu.cit.villadarez.knockknock.security;
 
-import edu.cit.villadarez.knockknock.entity.User;
-import edu.cit.villadarez.knockknock.repository.UserRepository;
+import edu.cit.villadarez.knockknock.features.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

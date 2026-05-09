@@ -1,6 +1,46 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+}
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("mobile/local.properties")
+    if (file.exists()) {
+        file.inputStream().use(::load)
+    }
+}
+
+val rootEnvProperties = Properties().apply {
+    val file = rootProject.file(".env")
+    if (file.exists()) {
+        file.inputStream().use(::load)
+    }
+}
+
+val webEnvProperties = Properties().apply {
+    val file = rootProject.file("web/knockknock/.env")
+    if (file.exists()) {
+        file.inputStream().use(::load)
+    }
+}
+
+fun envValue(vararg names: String): String {
+    for (name in names) {
+        val value = localProperties.getProperty(name)
+            ?: System.getenv(name)
+            ?: rootEnvProperties.getProperty(name)
+            ?: webEnvProperties.getProperty(name)
+
+        if (!value.isNullOrBlank()) return value
+    }
+
+    return ""
+}
+
+fun androidString(value: String): String {
+    return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 }
 
 android {
@@ -15,6 +55,22 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField(
+            "String",
+            "SUPABASE_URL",
+            androidString(envValue("VITE_SUPABASE_URL", "SUPABASE_URL"))
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_PUBLISHABLE_KEY",
+            androidString(envValue("VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY", "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_KEY"))
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_STORAGE_BUCKET",
+            androidString(envValue("SUPABASE_STORAGE_BUCKET").ifBlank { "kk_files" })
+        )
     }
 
     buildTypes {
@@ -35,6 +91,7 @@ android {
     }
 
     buildFeatures {
+        buildConfig = true
         viewBinding = true
     }
 }
@@ -54,6 +111,9 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp.logging.interceptor)
 
+    // Image Loading (Glide)
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
     // Secure Storage for JWT
     implementation(libs.androidx.security.crypto)
 
@@ -65,4 +125,5 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.test.core)
 }

@@ -4,15 +4,14 @@
     "baseUrl": "./src",
     "paths": {
       "@/*": ["./src/*"],
-      "@api/*": ["./src/api/*"],
-      "@services/*": ["./src/services/*"],
       "@components/*": ["./src/components/*"],
-      "@hooks/*": ["./src/hooks/*"],
+      "@context/*": ["./src/context/*"],
+      "@features/*": ["./src/features/*"],
       "@layouts/*": ["./src/layouts/*"],
+      "@lib/*": ["./src/lib/*"],
       "@pages/*": ["./src/pages/*"],
       "@routes/*": ["./src/routes/*"],
-      "@store/*": ["./src/store/*"],
-      "@utils/*": ["./src/utils/*"],
+      "@shared/*": ["./src/shared/*"],
       "@assets/*": ["./src/assets/*"]
     }
   },

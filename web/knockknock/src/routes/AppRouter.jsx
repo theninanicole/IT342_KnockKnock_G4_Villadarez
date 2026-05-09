@@ -13,6 +13,10 @@ import AllVisits from "@pages/admin/AllVisits";
 import StatusHistory from "@pages/admin/StatusHistory";
 import Profile from "@pages/Profile";
 
+const VISITOR_ONLY = ["VISITOR"];
+const ADMIN_ONLY = ["CONDOMINIUM_ADMIN"];
+const AUTHENTICATED_ROLES = ["VISITOR", "CONDOMINIUM_ADMIN"];
+
 export default function AppRouter() {
   return (
     <>
@@ -23,7 +27,7 @@ export default function AppRouter() {
         <Route
           path="/visitor-dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={VISITOR_ONLY}>
               <VisitorDashboard />
             </ProtectedRoute>
           }
@@ -31,7 +35,7 @@ export default function AppRouter() {
         <Route
           path="/my-visits"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={VISITOR_ONLY}>
               <MyVisits />
             </ProtectedRoute>
           }
@@ -39,7 +43,7 @@ export default function AppRouter() {
         <Route
           path="/notifications"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={VISITOR_ONLY}>
               <Notifications />
             </ProtectedRoute>
           }
@@ -47,7 +51,7 @@ export default function AppRouter() {
         <Route
           path="/admin-dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={ADMIN_ONLY}>
               <AdminDashboard />
             </ProtectedRoute>
           }
@@ -55,7 +59,7 @@ export default function AppRouter() {
         <Route
           path="/admin/all-visits"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={ADMIN_ONLY}>
               <AllVisits />
             </ProtectedRoute>
           }
@@ -63,7 +67,7 @@ export default function AppRouter() {
         <Route
           path="/admin/history"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={ADMIN_ONLY}>
               <StatusHistory />
             </ProtectedRoute>
           }
@@ -71,7 +75,7 @@ export default function AppRouter() {
         <Route
           path="/profile"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={AUTHENTICATED_ROLES}>
               <Profile />
             </ProtectedRoute>
           }

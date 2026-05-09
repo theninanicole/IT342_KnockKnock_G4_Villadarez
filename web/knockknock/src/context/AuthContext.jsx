@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useEffect } from "react";
-import { setSupabaseSession, clearSupabaseSession } from "@api/supabaseClient";
-import { getCurrentUser } from "@api/apiServices";
+import { setSupabaseSession, clearSupabaseSession } from "@lib/supabaseClient";
+import { getCurrentUser } from "@lib/apiServices";
 
 export const AuthContext = createContext();
 

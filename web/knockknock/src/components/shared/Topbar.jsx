@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { AuthContext } from "@store/AuthContext";
+import { AuthContext } from "@context/AuthContext";
 
 export default function Topbar({ title }) {
   const { user } = useContext(AuthContext);
