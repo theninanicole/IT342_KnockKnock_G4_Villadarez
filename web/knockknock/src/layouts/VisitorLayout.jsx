@@ -1,6 +1,6 @@
 import Sidebar from "@components/shared/Sidebar";
 import Topbar from "@components/shared/Topbar";
-import { useAuth } from "@hooks/useAuth";
+import { useAuth } from "@shared/hooks/useAuth";
 
 export default function VisitorLayout({ children }) {
   const { user } = useAuth();
