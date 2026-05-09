@@ -3,16 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="8dp"
-    app:cardCornerRadius="16dp"
-    app:cardUseCompatPadding="true">
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:cardUseCompatPadding="false">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_height="96dp"
+        android:background="@drawable/bg_visit_card_border"
         android:gravity="center_vertical"
-        android:padding="16dp">
+        android:orientation="horizontal"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="20dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -22,34 +25,54 @@
 
             <TextView
                 android:id="@+id/tvCondoName"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Condo Name"
-                android:textColor="#111827"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="Uptown Residences"
+                android:textColor="#000000"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tvDetails"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="25L • March 18, 2026"
-                android:textColor="#6B7280"
-                android:textSize="13sp" />
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/imgVisitMeta"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription=""
+                    android:src="@drawable/ic_buildings"
+                    app:tint="#2F6DED" />
+
+                <TextView
+                    android:id="@+id/tvDetails"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="25L • March 18, 2026"
+                    android:textColor="#667085"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
 
         <TextView
             android:id="@+id/tvStatusPill"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="28dp"
+            android:layout_marginStart="12dp"
+            android:gravity="center"
+            android:minWidth="92dp"
             android:paddingHorizontal="12dp"
-            android:paddingVertical="4dp"
-            android:background="@drawable/bg_status_pill_scheduled"
             android:text="Scheduled"
             android:textAllCaps="false"
             android:textColor="#2563EB"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
     </LinearLayout>

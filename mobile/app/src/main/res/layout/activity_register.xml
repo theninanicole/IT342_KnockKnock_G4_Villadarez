@@ -32,7 +32,8 @@
             android:layout_height="wrap_content"
             android:text="Built for seamless entry"
             android:textColor="@android:color/white"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:textStyle="normal" />
     </LinearLayout>
 
     <!-- White Form Card -->
@@ -71,6 +72,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Visitor"
+                        android:textStyle="bold"
                         app:icon="@drawable/ic_person" />
 
                     <com.google.android.material.button.MaterialButton
@@ -80,6 +82,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Administrator"
+                        android:textStyle="bold"
                         app:icon="@drawable/ic_business" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 
@@ -98,7 +101,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Register as a visitor"
-                    android:textColor="#64748B" />
+                    android:textColor="#64748B"
+                    android:textStyle="normal" />
 
                 <!-- PERSONAL INFORMATION SECTION -->
                 <TextView style="@style/SectionHeader" android:text="PERSONAL INFORMATION" android:layout_marginTop="24dp"/>

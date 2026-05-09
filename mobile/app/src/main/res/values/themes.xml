@@ -3,6 +3,25 @@
     <style name="Base.Theme.KnockKnock" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="fontFamily">@font/inter</item>
+        <item name="android:textViewStyle">@style/AppTextView</item>
+        <item name="android:buttonStyle">@style/AppButton</item>
+        <item name="android:editTextStyle">@style/AppEditText</item>
+    </style>
+
+    <style name="AppTextView" parent="@android:style/Widget.TextView">
+        <item name="android:fontFamily">@font/inter</item>
+    </style>
+
+    <style name="AppButton" parent="@android:style/Widget.Material.Button">
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="fontFamily">@font/inter</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="AppEditText" parent="@android:style/Widget.EditText">
+        <item name="android:fontFamily">@font/inter</item>
     </style>
 
     <style name="CustomOutlinedBox" parent="Widget.Material3.TextInputLayout.OutlinedBox">
