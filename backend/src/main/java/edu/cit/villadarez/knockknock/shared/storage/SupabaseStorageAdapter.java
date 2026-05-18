@@ -140,6 +140,9 @@ public class SupabaseStorageAdapter implements StorageClient {
         if (key == null || key.isBlank()) {
             throw new IOException("Supabase key is not configured");
         }
+        if (key.startsWith("sb_publishable_") || key.chars().filter(ch -> ch == '.').count() != 2) {
+            throw new IOException("SUPABASE_KEY must be a Supabase JWT key, such as the anon public JWT or service_role JWT, not an sb_publishable key");
+        }
 
         return supabaseUrl.replaceAll("/+$", "");
     }

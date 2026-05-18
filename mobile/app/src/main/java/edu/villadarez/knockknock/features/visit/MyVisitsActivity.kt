@@ -211,6 +211,11 @@ class MyVisitsActivity : AppCompatActivity() {
             loadVisitFiles(visit.id, tvIDDetail)
         }
 
+        // Hide or disable Cancel/Edit if not SCHEDULED
+        val isScheduled = visit.status.equals("SCHEDULED", ignoreCase = true)
+        btnCancelVisit.visibility = if (isScheduled) View.VISIBLE else View.GONE
+        btnEdit.visibility = if (isScheduled) View.VISIBLE else View.GONE
+
         // Close button
         btnCloseModal.setOnClickListener {
             dialog.dismiss()
@@ -218,12 +223,16 @@ class MyVisitsActivity : AppCompatActivity() {
 
         // Cancel Visit button
         btnCancelVisit.setOnClickListener {
-            confirmCancelVisit(visit.id, dialog)
+            if (isScheduled) {
+                confirmCancelVisit(visit.id, dialog)
+            }
         }
 
         // Edit button
         btnEdit.setOnClickListener {
-            showEditVisitModal(visit, dialog)
+            if (isScheduled) {
+                showEditVisitModal(visit, dialog)
+            }
         }
 
         // Generate QR button
@@ -374,7 +383,24 @@ class MyVisitsActivity : AppCompatActivity() {
                 }
             }
         }
+
+        val sheet = dialog.findViewById<View>(R.id.visitDetailsSheet)
+        val scroll = dialog.findViewById<View>(R.id.detailsScroll)
+        sheet?.post {
+            val maxSheetHeight = (resources.displayMetrics.heightPixels * 0.86f).toInt()
+            val overflow = sheet.height - maxSheetHeight
+            if (overflow > 0 && scroll != null) {
+                sheet.layoutParams = sheet.layoutParams.apply {
+                    height = maxSheetHeight
+                }
+                scroll.layoutParams = scroll.layoutParams.apply {
+                    height = (scroll.height - overflow).coerceAtLeast(dpToPx(180))
+                }
+            }
+        }
     }
+
+    private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
 
     private fun updateQrSection(qrImageUrl: String?, qrSection: View, ivQRCode: ImageView, btnGenerateQR: TextView) {
         if (qrImageUrl.isNullOrBlank()) {

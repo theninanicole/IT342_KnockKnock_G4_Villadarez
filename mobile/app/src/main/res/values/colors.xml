@@ -15,7 +15,7 @@
     <color name="nav_unselected">#94A3B8</color>
     <color name="brand_blue_primary">#2663EB</color>
 
-    <color name="status_scheduled_bg">#DBEAFE</color>
+    <color name="status_scheduled_bg">#EFF6FF</color>
     <color name="status_scheduled_text">#2563EB</color>
 
     <color name="status_checked_in_bg">#ECFDF5</color>

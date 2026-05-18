@@ -23,14 +23,27 @@ object AdminUi {
     }
 
     fun statusPill(context: Context, status: String): TextView {
+        val code = normalizeStatus(status)
+        val (label, backgroundRes, textColor) = when (code) {
+            "SCHEDULED" -> Triple("Scheduled", R.drawable.bg_status_pill_scheduled, R.color.status_scheduled_text)
+            "CHECKED-IN" -> Triple("Checked-In", R.drawable.bg_status_pill_checked_in, R.color.status_checked_in_text)
+            "CHECKED-OUT" -> Triple("Checked-Out", R.drawable.bg_status_pill_checked_out, R.color.status_checked_out_text)
+            "CANCELLED" -> Triple("Cancelled", R.drawable.bg_status_pill_cancelled, R.color.status_cancelled_text)
+            "MISSED" -> Triple("Missed", R.drawable.bg_status_pill_missed, R.color.status_missed_text)
+            else -> Triple(status.ifBlank { "Unknown" }, R.drawable.bg_status_pill_checked_out, R.color.status_checked_out_text)
+        }
+
         return TextView(context).apply {
-            text = status.replace("-", " ").lowercase().replaceFirstChar { it.uppercase() }
-            setTextColor(ContextCompat.getColor(context, R.color.status_scheduled_text))
+            text = label
+            setTextColor(ContextCompat.getColor(context, textColor))
             setTypeface(null, Typeface.BOLD)
-            textSize = 12f
+            textSize = 14f
             gravity = android.view.Gravity.CENTER
-            background = ContextCompat.getDrawable(context, R.drawable.bg_status_pill_scheduled)
-            layoutParams = LinearLayout.LayoutParams(dp(context, 132), dp(context, 34))
+            background = ContextCompat.getDrawable(context, backgroundRes)
+            includeFontPadding = false
+            minWidth = dp(context, 92)
+            setPadding(dp(context, 16), 0, dp(context, 16), 0)
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(context, 34))
         }
     }
 
@@ -50,6 +63,19 @@ object AdminUi {
             val date = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(input)
             SimpleDateFormat("MMMM d, yyyy", Locale.US).format(date!!)
         }.getOrDefault(input)
+    }
+
+    fun formatMonthYear(value: String?): String {
+        if (value.isNullOrBlank()) return "UNSCHEDULED"
+        val input = value.substringBefore("T")
+        return runCatching {
+            val date = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(input)
+            SimpleDateFormat("MMMM yyyy", Locale.US).format(date!!).uppercase(Locale.US)
+        }.getOrDefault(input.uppercase(Locale.US))
+    }
+
+    fun normalizeStatus(status: String?): String {
+        return status.orEmpty().trim().uppercase(Locale.US).replace("_", "-")
     }
 
     fun isToday(value: String?): Boolean {

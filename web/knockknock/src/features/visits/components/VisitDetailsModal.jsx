@@ -78,7 +78,6 @@ export default function VisitDetailsModal({
   const handleCancelVisit = async () => {
     try {
       await onCancelVisit(visit.visitId);
-      toast.success("Visit cancelled successfully!");
       setShowConfirmCancel(false);
       onClose();
     } catch (error) {
@@ -174,12 +173,12 @@ export default function VisitDetailsModal({
             </p>
           </div>
 
-          <div className="pt-2">
-            <label className="text-sm text-gray-500 mb-2 block">
+          <div className>
+            <label className="text-sm text-gray-500 mb-1.5 block">
               ID Document
             </label>
             {files && files.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-3 mb-5">
                 {files.map((file, index) => (
                   <div
                     key={index}
@@ -243,45 +242,49 @@ export default function VisitDetailsModal({
           )}
         </div>
 
-        <div className="flex flex-col-reverse sm:flex-row justify-between items-center gap-3 px-6 pb-6 pt-6 border-t border-gray-50 flex-shrink-0 bg-white rounded-b-[24px]">
-          <button
-            onClick={isCancellable ? () => setShowConfirmCancel(true) : undefined}
-            disabled={!isCancellable}
-            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-red-400"
-            title={isCancellable ? "" : "Only upcoming scheduled visits can be cancelled"}
-          >
-            Cancel Visit
-          </button>
 
-          <div className="flex w-full sm:w-auto gap-2">
-            <button
-              onClick={isEditable ? handleEdit : undefined}
-              disabled={!isEditable}
-              className="flex-1 sm:flex-none px-5 py-2.5 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                color: isEditable ? "#2663EB" : "#9CA3AF",
-                backgroundColor: "transparent",
-              }}
-            >
-              Edit
-            </button>
-            {!qrImageUrl && isEditable && (
+        {isCancellable || isEditable ? (
+          <div className="flex flex-col-reverse sm:flex-row justify-between items-center gap-3 px-6 pb-6 pt-6 border-t border-gray-50 flex-shrink-0 bg-white rounded-b-[24px]">
+            {isCancellable && (
               <button
-                onClick={handleGenerateQR}
-                disabled={isGenerating}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium text-white rounded-xl transition-all shadow-sm disabled:opacity-75 disabled:cursor-not-allowed"
-                style={{ backgroundColor: "#2663EB" }}
+                onClick={() => setShowConfirmCancel(true)}
+                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all"
+                title="Only upcoming scheduled visits can be cancelled"
               >
-                {isGenerating ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <QrCode className="w-4 h-4" />
-                )}
-                {isGenerating ? "Generating..." : "Generate QR"}
+                Cancel Visit
               </button>
             )}
+            <div className="flex w-full sm:w-auto gap-2">
+              {isEditable && (
+                <button
+                  onClick={handleEdit}
+                  className="flex-1 sm:flex-none px-5 py-2.5 text-sm font-medium rounded-xl transition-all"
+                  style={{
+                    color: "#2663EB",
+                    backgroundColor: "transparent",
+                  }}
+                >
+                  Edit
+                </button>
+              )}
+              {!qrImageUrl && isEditable && (
+                <button
+                  onClick={handleGenerateQR}
+                  disabled={isGenerating}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium text-white rounded-xl transition-all shadow-sm disabled:opacity-75 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: "#2663EB" }}
+                >
+                  {isGenerating ? (
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <QrCode className="w-4 h-4" />
+                  )}
+                  {isGenerating ? "Generating..." : "Generate QR"}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        ) : null}
 
         {showConfirmCancel && isCancellable && (
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[60] p-4 font-sans">

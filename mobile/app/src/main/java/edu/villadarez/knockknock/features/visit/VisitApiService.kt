@@ -1,18 +1,20 @@
 package edu.villadarez.knockknock.features.visit
 
-import edu.villadarez.knockknock.features.visit.MyVisitsResponse
-import edu.villadarez.knockknock.features.visit.NotificationItem
-import edu.villadarez.knockknock.features.visit.Condominium
+import okhttp3.ResponseBody
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.PUT
-import retrofit2.http.Header
-import retrofit2.http.Path
-import retrofit2.http.Query
 import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Multipart
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Part
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface VisitApiService {
 
@@ -37,6 +39,25 @@ interface VisitApiService {
         @Field("purposeOfVisit") purposeOfVisit: String
     ): Response<CreateVisitResponse>
 
+    @Multipart
+    @POST("visits")
+    suspend fun createVisitWithFile(
+        @Header("Authorization") token: String,
+        @Part("condoId") condoId: RequestBody,
+        @Part("unitNumber") unitNumber: RequestBody,
+        @Part("dateOfVisit") dateOfVisit: RequestBody,
+        @Part("purposeOfVisit") purposeOfVisit: RequestBody,
+        @Part idFile: MultipartBody.Part
+    ): Response<CreateVisitResponse>
+
+    @Multipart
+    @POST("visits/{visitId}/files")
+    suspend fun uploadVisitFile(
+        @Header("Authorization") token: String,
+        @Path("visitId") visitId: String,
+        @Part idFile: MultipartBody.Part
+    ): Response<Map<String, Any>>
+
     @POST("visits/{visitId}/files")
     suspend fun saveVisitFileMetadata(
         @Header("Authorization") token: String,
@@ -54,20 +75,20 @@ interface VisitApiService {
     suspend fun sendVisitQrEmail(
         @Header("Authorization") token: String,
         @Path("visitId") visitId: String
-    ): Response<okhttp3.ResponseBody>
+    ): Response<ResponseBody>
 
     @PUT("visits/{visitId}")
     suspend fun updateVisit(
         @Header("Authorization") token: String,
         @Path("visitId") visitId: String,
         @Body request: UpdateVisitRequest
-    ): Response<okhttp3.ResponseBody>
+    ): Response<ResponseBody>
 
     @POST("visits/{visitId}/cancel")
     suspend fun cancelVisit(
         @Header("Authorization") token: String,
         @Path("visitId") visitId: String
-    ): Response<okhttp3.ResponseBody>
+    ): Response<ResponseBody>
 
     @GET("notifications")
     suspend fun getNotifications(
@@ -79,7 +100,7 @@ interface VisitApiService {
     suspend fun markNotificationRead(
         @Header("Authorization") token: String,
         @Path("notificationId") notificationId: String
-    ): Response<okhttp3.ResponseBody>
+    ): Response<ResponseBody>
 
     @GET("condos")
     suspend fun getCondominiums(

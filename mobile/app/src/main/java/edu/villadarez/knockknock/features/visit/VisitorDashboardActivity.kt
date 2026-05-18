@@ -7,7 +7,6 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.OpenableColumns
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -35,7 +34,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.RequestBody
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -50,9 +49,11 @@ class VisitorDashboardActivity : AppCompatActivity() {
     private var selectedFileUri: Uri? = null
     private var selectedFileName: String = "No file selected"
     private var tvSelectedFileNameRef: TextView? = null
+    private var layoutUploadPromptRef: View? = null
+    private var layoutSelectedFileRef: View? = null
     private var selectedCondoId: String? = null
-    private val supabaseHttpClient = OkHttpClient()
     private val FILE_PICKER_REQUEST = 1001
+    private val storageHttpClient = OkHttpClient()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,11 +67,6 @@ class VisitorDashboardActivity : AppCompatActivity() {
         setupNewVisitButton()
 
         loadDashboardData()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        NotificationBadgeHelper.refresh(lifecycleScope, sessionManager, binding.badgeNotificationCount)
     }
 
     private fun setupRecyclerView() {
@@ -127,12 +123,12 @@ class VisitorDashboardActivity : AppCompatActivity() {
 
         binding.tabNotifications.setOnClickListener {
             setActiveTab(binding.tabNotifications)
-            startActivity(Intent(this, NotificationsActivity::class.java))
+            // TODO: navigate to notifications screen
         }
 
         binding.tabAccount.setOnClickListener {
             setActiveTab(binding.tabAccount)
-            startActivity(Intent(this, AccountActivity::class.java))
+            // TODO: navigate to account/profile screen
         }
 
         binding.tabLogout.setOnClickListener {
@@ -166,67 +162,33 @@ class VisitorDashboardActivity : AppCompatActivity() {
         val etPurpose = dialogView.findViewById<EditText>(R.id.etPurpose)
         val btnUploadID = dialogView.findViewById<View>(R.id.btnUploadID)
         val tvSelectedFileName = dialogView.findViewById<TextView>(R.id.tvSelectedFileName)
+        val layoutUploadPrompt = dialogView.findViewById<View>(R.id.layoutUploadPrompt)
+        val layoutSelectedFile = dialogView.findViewById<View>(R.id.layoutSelectedFile)
         val btnCloseNewVisit = dialogView.findViewById<ImageView>(R.id.btnCloseNewVisit)
         val btnSubmit = dialogView.findViewById<Button>(R.id.btnSubmit)
 
         // Store reference for onActivityResult
         tvSelectedFileNameRef = tvSelectedFileName
+        layoutUploadPromptRef = layoutUploadPrompt
+        layoutSelectedFileRef = layoutSelectedFile
 
         // Reset file selection
         selectedFileUri = null
         selectedFileName = "No file selected"
-        tvSelectedFileName.text = selectedFileName
-
-        // Fetch and populate condominiums
-        val token = sessionManager.fetchAuthToken()
-        if (!token.isNullOrBlank()) {
-            val bearer = "Bearer $token"
-            try {
-                val response = RetrofitClient.visitService.getCondominiums(bearer)
-                if (response.isSuccessful) {
-                    val condos = response.body() ?: emptyList()
-                    val condoNames = condos.map { it.name }
-                    val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, condoNames)
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                    spinnerCondo.adapter = adapter
-
-                    // Set spinner selection listener
-                    spinnerCondo.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-                        override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                            selectedCondoId = condos[position].condoId
-                        }
-
-                        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {
-                            selectedCondoId = null
-                        }
-                    }
-
-                    // Set initial selection
-                    if (condos.isNotEmpty()) {
-                        spinnerCondo.setSelection(0)
-                        selectedCondoId = condos[0].condoId
-                    }
-                } else {
-                    Toast.makeText(this, "Failed to load condominiums", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Toast.makeText(this, "Error loading condominiums: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
+        updateSelectedFileUi()
 
         // Close button
         btnCloseNewVisit.setOnClickListener {
             dialog.dismiss()
+            tvSelectedFileNameRef = null
+            layoutUploadPromptRef = null
+            layoutSelectedFileRef = null
         }
 
         // Upload ID file
         btnUploadID.setOnClickListener {
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
+            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                 type = "*/*"
-                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "application/pdf"))
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
             }
             startActivityForResult(intent, FILE_PICKER_REQUEST)
         }
@@ -266,26 +228,46 @@ class VisitorDashboardActivity : AppCompatActivity() {
             }
         }
 
+        dialog.setOnShowListener {
+            dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            dialog.window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT)
+        }
         dialog.show()
-        configureNewVisitDialogWindow(dialog)
-    }
 
-    private fun configureNewVisitDialogWindow(dialog: AlertDialog) {
-        dialog.window?.let { window ->
-            window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            window.setLayout(
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.MATCH_PARENT
-            )
-            window.setGravity(Gravity.BOTTOM)
-            window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-            window.setDimAmount(0.22f)
+        // Fetch and populate condominiums after the sheet is visible.
+        val token = sessionManager.fetchAuthToken()
+        if (!token.isNullOrBlank()) {
+            val bearer = "Bearer $token"
+            try {
+                val response = RetrofitClient.visitService.getCondominiums(bearer)
+                if (response.isSuccessful) {
+                    val condos = response.body() ?: emptyList()
+                    val condoNames = condos.map { it.name }
+                    val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, condoNames)
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    spinnerCondo.adapter = adapter
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                window.attributes = window.attributes.apply {
-                    blurBehindRadius = 24
-                    flags = flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
+                    // Set spinner selection listener
+                    spinnerCondo.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                        override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                            selectedCondoId = condos[position].condoId
+                        }
+
+                        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {
+                            selectedCondoId = null
+                        }
+                    }
+
+                    // Set initial selection
+                    if (condos.isNotEmpty()) {
+                        spinnerCondo.setSelection(0)
+                        selectedCondoId = condos[0].condoId
+                    }
+                } else {
+                    Toast.makeText(this, "Failed to load condominiums", Toast.LENGTH_SHORT).show()
                 }
+            } catch (e: Exception) {
+                Toast.makeText(this, "Error loading condominiums: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -319,28 +301,23 @@ class VisitorDashboardActivity : AppCompatActivity() {
                     Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show()
                     return
                 }
-                val month = parts[0].padStart(2, '0')
-                val day = parts[1].padStart(2, '0')
-                "${parts[2]}-$month-$day"
+                val month = parts[0].toInt()
+                val day = parts[1].toInt()
+                val year = parts[2].toInt()
+                String.format(Locale.US, "%04d-%02d-%02d", year, month, day)
             } catch (e: Exception) {
                 Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show()
                 return
             }
 
-            val parsedVisitDate = parseVisitDate(formattedDate)
-            val today = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }.time
-            if (parsedVisitDate == null || parsedVisitDate.before(today)) {
-                Toast.makeText(this, "Visit date must be today or later", Toast.LENGTH_SHORT).show()
+            var fileName = selectedFileName
+            if (fileName.isBlank() || fileName == "No file selected") {
+                Toast.makeText(this, "Please upload your ID file", Toast.LENGTH_SHORT).show()
                 return
             }
 
-            System.out.println("[VisitorDashboard] Creating visit before Supabase file upload")
-            
+            System.out.println("[VisitorDashboard] Creating visit")
+
             val response = RetrofitClient.visitService.createVisitWithoutFile(
                 bearer,
                 condoId,
@@ -359,30 +336,14 @@ class VisitorDashboardActivity : AppCompatActivity() {
             }
 
             val visitId = response.body()?.visitId
+
             if (visitId.isNullOrBlank()) {
-                Toast.makeText(this, "Visit created but no visit ID was returned", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Failed to get visit ID", Toast.LENGTH_SHORT).show()
                 return
             }
 
-            val uploadResult = uploadFileToSupabase(fileUri, visitId)
-            val metadataResponse = RetrofitClient.visitService.saveVisitFileMetadata(
-                bearer,
-                visitId,
-                FileUploadRequest(
-                    visitId = visitId,
-                    filePath = uploadResult.path,
-                    fileUrl = uploadResult.publicUrl,
-                    fileName = uploadResult.originalFileName,
-                    fileType = uploadResult.fileType
-                )
-            )
-
-            if (!metadataResponse.isSuccessful) {
-                val errorBody = metadataResponse.errorBody()?.string() ?: "Unknown error"
-                System.err.println("[VisitorDashboard] File metadata error response: $errorBody")
-                Toast.makeText(this, "File uploaded, but saving file details failed", Toast.LENGTH_LONG).show()
-                return
-            }
+            System.out.println("[VisitorDashboard] Visit created with ID: $visitId")
+            uploadFileForVisit(fileUri, visitId)
 
             Toast.makeText(this, "Visit created successfully", Toast.LENGTH_SHORT).show()
             dialog.dismiss()
@@ -392,105 +353,138 @@ class VisitorDashboardActivity : AppCompatActivity() {
                 loadDashboardData()
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Error creating visit: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Error creating visit: ${e.message ?: e.javaClass.simpleName}", Toast.LENGTH_SHORT).show()
             e.printStackTrace()
         }
     }
 
-    private suspend fun uploadFileToSupabase(fileUri: Uri, visitId: String): SupabaseUploadResult {
-        val supabaseUrl = BuildConfig.SUPABASE_URL.trim().trimEnd('/')
-        val supabaseKey = BuildConfig.SUPABASE_PUBLISHABLE_KEY.trim()
-        val bucketName = BuildConfig.SUPABASE_STORAGE_BUCKET.ifBlank { "kk_files" }
-
-        if (supabaseUrl.isBlank() || supabaseKey.isBlank()) {
-            throw IllegalStateException("Supabase mobile config is missing")
-        }
-
-        val mimeType = contentResolver.getType(fileUri) ?: "application/octet-stream"
-        val fileBytes = withContext(Dispatchers.IO) {
-            contentResolver.openInputStream(fileUri)?.use { input ->
-                input.readBytes()
-            } ?: throw IllegalStateException("Could not open selected file")
-        }
-
-        if (fileBytes.isEmpty()) {
-            throw IllegalStateException("Selected file is empty")
-        }
-
-        val safeName = sanitizeFileName(selectedFileName)
-        val fileName = "${System.currentTimeMillis()}_$safeName"
-        val filePath = "visitors_id/$visitId/$fileName"
-        val requestBody = fileBytes.toRequestBody(mimeType.toMediaType())
-        val uploadUrl = "$supabaseUrl/storage/v1/object/$bucketName/$filePath"
-
-        System.out.println("[VisitorDashboard] Uploading file directly to Supabase: $filePath")
-
-        val request = Request.Builder()
-            .url(uploadUrl)
-            .header("apikey", supabaseKey)
-            .header("Authorization", "Bearer $supabaseKey")
-            .header("Content-Type", mimeType)
-            .header("Cache-Control", "3600")
-            .header("x-upsert", "false")
-            .post(requestBody)
-            .build()
-
-        withContext(Dispatchers.IO) {
-            supabaseHttpClient.newCall(request).execute().use { response ->
-                val responseBody = response.body?.string().orEmpty()
-                System.out.println("[VisitorDashboard] Supabase upload response: ${response.code}")
-
-                if (!response.isSuccessful) {
-                    System.err.println("[VisitorDashboard] Supabase upload error: $responseBody")
-                    throw IllegalStateException("Supabase upload failed: ${response.code} - $responseBody")
-                }
+    private suspend fun uploadFileForVisit(fileUri: Uri, visitId: String) {
+        try {
+            val token = sessionManager.fetchAuthToken()
+            if (token.isNullOrBlank()) {
+                System.err.println("[VisitorDashboard] Not authenticated for file upload")
+                return
             }
-        }
 
-        return SupabaseUploadResult(
-            path = filePath,
-            publicUrl = "$supabaseUrl/storage/v1/object/public/$bucketName/$filePath",
-            originalFileName = selectedFileName,
-            fileType = mimeType
-        )
+            val bearer = "Bearer $token"
+            val originalFileName = selectedFileName
+            var fileName = originalFileName
+            
+            if (fileName.isBlank() || fileName == "No file selected") {
+                System.err.println("[VisitorDashboard] Invalid file name")
+                return
+            }
+            
+            fileName = "${System.currentTimeMillis()}_${sanitizeStorageFileName(fileName)}"
+            val filePath = "visitors_id/$visitId/$fileName"
+            val fileType = contentResolver.getType(fileUri) ?: "application/octet-stream"
+
+            System.out.println("[VisitorDashboard] Starting Supabase upload for visit $visitId - path: $filePath")
+
+            val publicUrl = withContext(Dispatchers.IO) {
+                val fileBytes = try {
+                    contentResolver.openInputStream(fileUri)?.use { input ->
+                        input.readBytes()
+                    } ?: throw IllegalStateException("Could not open file")
+                } catch (e: Exception) {
+                    throw IllegalStateException("Unable to read selected ID file", e)
+                }
+
+                if (fileBytes.isEmpty()) {
+                    throw IllegalStateException("Selected ID file is empty")
+                }
+
+                System.out.println("[VisitorDashboard] File bytes read: ${fileBytes.size} bytes")
+
+                val supabaseUrl = BuildConfig.SUPABASE_URL.trim().trimEnd('/')
+                val supabaseKey = BuildConfig.SUPABASE_PUBLISHABLE_KEY.trim()
+                val bucket = BuildConfig.SUPABASE_STORAGE_BUCKET.ifBlank { "kk_files" }
+                if (supabaseUrl.isBlank() || supabaseKey.isBlank()) {
+                    throw IllegalStateException("Supabase storage is not configured")
+                }
+
+                val uploadUrl = "$supabaseUrl/storage/v1/object/$bucket/$filePath"
+                val requestBody = RequestBody.create(fileType.toMediaType(), fileBytes)
+                val request = Request.Builder()
+                    .url(uploadUrl)
+                    .header("apikey", supabaseKey)
+                    .header("Content-Type", fileType)
+                    .header("Cache-Control", "3600")
+                    .header("x-upsert", "false")
+                    .post(requestBody)
+                    .build()
+
+                storageHttpClient.newCall(request).execute().use { response ->
+                    val responseBody = response.body?.string().orEmpty()
+                    System.out.println("[VisitorDashboard] Supabase upload response: ${response.code}")
+                    if (!response.isSuccessful) {
+                        System.err.println("[VisitorDashboard] Supabase upload failed: ${response.code} - $responseBody")
+                        throw IllegalStateException("Supabase upload failed: ${response.code}")
+                    }
+                }
+
+                "$supabaseUrl/storage/v1/object/public/$bucket/$filePath"
+            }
+
+            val metadataResponse = RetrofitClient.visitService.saveVisitFileMetadata(
+                bearer,
+                visitId,
+                FileUploadRequest(
+                    visitId = visitId,
+                    filePath = filePath,
+                    fileUrl = publicUrl,
+                    fileName = originalFileName,
+                    fileType = fileType
+                )
+            )
+
+            if (metadataResponse.isSuccessful) {
+                System.out.println("[VisitorDashboard] File metadata saved successfully")
+            } else {
+                val errorBody = metadataResponse.errorBody()?.string() ?: "Unknown error"
+                System.err.println("[VisitorDashboard] Metadata save failed: ${metadataResponse.code()} - $errorBody")
+                throw IllegalStateException("File uploaded, but metadata save failed")
+            }
+        } catch (e: Exception) {
+            System.err.println("[VisitorDashboard] Error uploading file: ${e.message}")
+            e.printStackTrace()
+            throw e
+        }
     }
 
-    private fun sanitizeFileName(fileName: String): String {
-        val fallbackName = "visitor_id"
-        return fileName
-            .takeIf { it.isNotBlank() && it != "No file selected" }
-            ?.replace("[^a-zA-Z0-9._-]".toRegex(), "_")
-            ?.takeIf { it.isNotBlank() }
-            ?: fallbackName
+    private fun sanitizeStorageFileName(name: String): String {
+        val justName = name.substringAfterLast('/').substringAfterLast('\\')
+        val dotIndex = justName.lastIndexOf('.')
+        val base = if (dotIndex > 0) justName.substring(0, dotIndex) else justName
+        val ext = if (dotIndex > 0) justName.substring(dotIndex) else ""
+        val safeBase = base.replace("[^a-zA-Z0-9-_]".toRegex(), "_")
+        return (safeBase + ext).ifBlank { "file" }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == FILE_PICKER_REQUEST && resultCode == RESULT_OK && data != null) {
-            selectedFileUri = data.data ?: return
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                runCatching {
-                    contentResolver.takePersistableUriPermission(
-                        selectedFileUri!!,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    )
-                }
-            }
+            selectedFileUri = data.data
             selectedFileName = getFileName(selectedFileUri) ?: "Unknown file"
-            tvSelectedFileNameRef?.text = selectedFileName
+            updateSelectedFileUi()
         }
+    }
+
+    private fun updateSelectedFileUi() {
+        val hasFile = selectedFileUri != null && selectedFileName != "No file selected"
+        layoutUploadPromptRef?.visibility = if (hasFile) View.GONE else View.VISIBLE
+        layoutSelectedFileRef?.visibility = if (hasFile) View.VISIBLE else View.GONE
+        tvSelectedFileNameRef?.text = if (hasFile) selectedFileName else ""
     }
 
     private fun getFileName(uri: Uri?): String? {
         if (uri == null) return null
         var result: String? = null
         if (uri.scheme == "content") {
-            contentResolver.query(uri, null, null, null, null).use {
+            val cursor = contentResolver.query(uri, null, null, null, null)
+            cursor.use {
                 if (it != null && it.moveToFirst()) {
-                    val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                    if (nameIndex >= 0) {
-                        result = it.getString(nameIndex)
-                    }
+                    result = it.getString(it.getColumnIndexOrThrow("_display_name"))
                 }
             }
         }
@@ -548,10 +542,7 @@ class VisitorDashboardActivity : AppCompatActivity() {
                 // Load visits
                 val visitsResponse = RetrofitClient.visitService.getMyVisits(bearer)
                 if (visitsResponse.isSuccessful) {
-                    val visits = visitsResponse.body()?.visits
-                        ?.filter { isTodayOrUpcoming(it.visitDate) }
-                        ?.sortedBy { parseVisitDate(it.visitDate) }
-                        ?: emptyList()
+                    val visits = visitsResponse.body()?.visits ?: emptyList()
                     updateVisits(visits)
                 } else {
                     Toast.makeText(this@VisitorDashboardActivity, "Failed to load visits", Toast.LENGTH_SHORT).show()
@@ -566,43 +557,46 @@ class VisitorDashboardActivity : AppCompatActivity() {
         }
     }
 
-    private fun isTodayOrUpcoming(dateString: String?): Boolean {
-        val visitDate = parseVisitDate(dateString) ?: return false
-        val today = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.time
-
-        return !visitDate.before(today)
-    }
-
-    private fun parseVisitDate(dateString: String?): java.util.Date? {
-        if (dateString.isNullOrBlank()) return null
-
-        val dateOnly = dateString.take(10)
-        val inputFormats = listOf(
-            "yyyy-MM-dd",
-            "MM/dd/yyyy"
-        )
-
-        return inputFormats.firstNotNullOfOrNull { pattern ->
-            runCatching {
-                SimpleDateFormat(pattern, Locale.getDefault()).apply {
-                    isLenient = false
-                }.parse(dateOnly)
-            }.getOrNull()
-        }
-    }
-
     private fun updateVisits(visits: List<VisitSummary>) {
-        if (visits.isEmpty()) {
+        val upcomingVisits = visits
+            .filter { isUpcomingDashboardVisit(it) }
+            .sortedBy { visitDateKey(it.visitDate).orEmpty() }
+
+        if (upcomingVisits.isEmpty()) {
             binding.tvEmptyVisits.visibility = View.VISIBLE
         } else {
             binding.tvEmptyVisits.visibility = View.GONE
         }
-        visitAdapter.updateData(visits)
+        visitAdapter.updateData(upcomingVisits)
+    }
+
+    private fun isUpcomingDashboardVisit(visit: VisitSummary): Boolean {
+        val status = visit.status.trim().uppercase(Locale.US).replace("_", "-")
+        if (status != "SCHEDULED" && status != "CHECKED-IN") return false
+
+        val visitKey = visitDateKey(visit.visitDate) ?: return false
+        val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Calendar.getInstance().time)
+        return visitKey >= todayKey
+    }
+
+    private fun visitDateKey(value: String?): String? {
+        if (value.isNullOrBlank()) return null
+        val datePart = value.substringBefore("T").trim()
+        if (Regex("\\d{4}-\\d{2}-\\d{2}").matches(datePart)) return datePart
+
+        val formats = listOf(
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "MMMM d, yyyy",
+            "MM/dd/yyyy"
+        )
+        val parsed = formats.firstNotNullOfOrNull { pattern ->
+            runCatching { SimpleDateFormat(pattern, Locale.US).parse(value) }.getOrNull()
+        } ?: return null
+
+        return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(parsed)
     }
 
     private fun showVisitDetailsModal(visit: VisitSummary) {
@@ -620,23 +614,20 @@ class VisitorDashboardActivity : AppCompatActivity() {
         val tvPurpose = dialogView.findViewById<TextView>(R.id.tvPurposeDetail)
         val tvIDDetail = dialogView.findViewById<TextView>(R.id.tvIDDetail)
         val ivQRCode = dialogView.findViewById<ImageView>(R.id.ivQRCode)
-        val qrSection = dialogView.findViewById<View>(R.id.qrSection)
         val btnCloseModal = dialogView.findViewById<ImageView>(R.id.btnCloseModal)
         val btnCancelVisit = dialogView.findViewById<TextView>(R.id.btnCancelVisit)
         val btnEdit = dialogView.findViewById<TextView>(R.id.btnEdit)
         val btnGenerateQR = dialogView.findViewById<TextView>(R.id.btnGenerateQR)
-        val btnSendQrEmail = dialogView.findViewById<TextView>(R.id.btnSendQrEmail)
 
         // Populate fields
         tvCondoName.text = visit.condoName ?: "Unknown"
         tvUnitNumber.text = visit.unitNumber ?: "N/A"
-        tvVisitDate.text = formatDateForDetails(visit.visitDate)
+        tvVisitDate.text = formatDateForDisplay(visit.visitDate)
         tvPurpose.text = visit.purpose ?: "N/A"
-        updateQrSection(visit.qrImageUrl, qrSection, ivQRCode, btnGenerateQR)
 
         // Fetch and display files
         lifecycleScope.launch {
-            loadVisitFiles(visit.id, tvIDDetail)
+            loadVisitFiles(visit.id, ivQRCode, tvIDDetail)
         }
 
         // Close button
@@ -646,198 +637,64 @@ class VisitorDashboardActivity : AppCompatActivity() {
 
         // Cancel Visit button
         btnCancelVisit.setOnClickListener {
-            confirmCancelVisit(visit.id, dialog)
+            Toast.makeText(this, "Cancel visit feature coming soon", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
         }
 
         // Edit button
         btnEdit.setOnClickListener {
-            showEditVisitModal(visit, dialog)
+            Toast.makeText(this, "Edit visit feature coming soon", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
         }
 
         // Generate QR button
         btnGenerateQR.setOnClickListener {
-            lifecycleScope.launch {
-                generateQrForVisit(visit.id, qrSection, ivQRCode, btnGenerateQR)
-            }
-        }
-
-        btnSendQrEmail.setOnClickListener {
-            lifecycleScope.launch {
-                sendQrEmail(visit.id)
-            }
+            Toast.makeText(this, "Generate QR feature coming soon", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
         }
 
         dialog.show()
-        configureNewVisitDialogWindow(dialog)
+        configureDetailsDialogWindow(dialog)
     }
 
-    private fun confirmCancelVisit(visitId: String, detailsDialog: AlertDialog) {
-        AlertDialog.Builder(this)
-            .setTitle("Cancel Visit")
-            .setMessage("Are you sure you want to cancel this visit?")
-            .setNegativeButton("No", null)
-            .setPositiveButton("Yes") { _, _ ->
-                lifecycleScope.launch {
-                    cancelVisit(visitId, detailsDialog)
+    private fun configureDetailsDialogWindow(dialog: AlertDialog) {
+        dialog.window?.let { window ->
+            window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            window.setLayout(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT
+            )
+            window.setGravity(Gravity.BOTTOM)
+            window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            window.setDimAmount(0.22f)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                window.attributes = window.attributes.apply {
+                    blurBehindRadius = 24
+                    flags = flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
                 }
             }
-            .show()
-    }
+        }
 
-    private suspend fun cancelVisit(visitId: String, detailsDialog: AlertDialog) {
-        try {
-            val token = sessionManager.fetchAuthToken()
-            if (token.isNullOrBlank()) {
-                Toast.makeText(this, "Not authenticated", Toast.LENGTH_SHORT).show()
-                return
+        val sheet = dialog.findViewById<View>(R.id.visitDetailsSheet)
+        val scroll = dialog.findViewById<View>(R.id.detailsScroll)
+        sheet?.post {
+            val maxSheetHeight = (resources.displayMetrics.heightPixels * 0.86f).toInt()
+            val overflow = sheet.height - maxSheetHeight
+            if (overflow > 0 && scroll != null) {
+                sheet.layoutParams = sheet.layoutParams.apply {
+                    height = maxSheetHeight
+                }
+                scroll.layoutParams = scroll.layoutParams.apply {
+                    height = (scroll.height - overflow).coerceAtLeast(dpToPx(180))
+                }
             }
-
-            val response = RetrofitClient.visitService.cancelVisit("Bearer $token", visitId)
-            if (response.isSuccessful) {
-                Toast.makeText(this, "Visit cancelled", Toast.LENGTH_SHORT).show()
-                detailsDialog.dismiss()
-                loadDashboardData()
-            } else {
-                val error = response.errorBody()?.string().orEmpty()
-                Toast.makeText(this, "Failed to cancel visit", Toast.LENGTH_SHORT).show()
-                System.err.println("[VisitorDashboard] Cancel visit failed: $error")
-            }
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error cancelling visit: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun showEditVisitModal(visit: VisitSummary, detailsDialog: AlertDialog) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_edit_visit, null)
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .setCancelable(true)
-            .create()
+    private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
 
-        val etUnitNumber = dialogView.findViewById<EditText>(R.id.etEditUnitNumber)
-        val etVisitDate = dialogView.findViewById<EditText>(R.id.etEditVisitDate)
-        val etPurpose = dialogView.findViewById<EditText>(R.id.etEditPurpose)
-        val btnClose = dialogView.findViewById<ImageView>(R.id.btnCloseEditVisit)
-        val btnSave = dialogView.findViewById<Button>(R.id.btnSaveEditVisit)
-
-        etUnitNumber.setText(visit.unitNumber)
-        etVisitDate.setText(formatDateForDetails(visit.visitDate))
-        etPurpose.setText(visit.purpose.orEmpty())
-
-        btnClose.setOnClickListener { dialog.dismiss() }
-        btnSave.setOnClickListener {
-            val unitNumber = etUnitNumber.text.toString().trim()
-            val visitDate = etVisitDate.text.toString().trim()
-            val purpose = etPurpose.text.toString().trim()
-
-            if (unitNumber.isBlank() || visitDate.isBlank() || purpose.isBlank()) {
-                Toast.makeText(this, "Please complete all fields", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            lifecycleScope.launch {
-                updateVisit(visit.id, unitNumber, visitDate, purpose, dialog, detailsDialog)
-            }
-        }
-
-        dialog.show()
-        configureNewVisitDialogWindow(dialog)
-    }
-
-    private suspend fun updateVisit(
-        visitId: String,
-        unitNumber: String,
-        visitDate: String,
-        purpose: String,
-        editDialog: AlertDialog,
-        detailsDialog: AlertDialog
-    ) {
-        try {
-            val token = sessionManager.fetchAuthToken()
-            if (token.isNullOrBlank()) {
-                Toast.makeText(this, "Not authenticated", Toast.LENGTH_SHORT).show()
-                return
-            }
-
-            val response = RetrofitClient.visitService.updateVisit(
-                "Bearer $token",
-                visitId,
-                UpdateVisitRequest(
-                    unitNumber = unitNumber,
-                    visitDate = visitDate,
-                    purpose = purpose
-                )
-            )
-
-            if (response.isSuccessful) {
-                Toast.makeText(this, "Visit updated", Toast.LENGTH_SHORT).show()
-                editDialog.dismiss()
-                detailsDialog.dismiss()
-                loadDashboardData()
-            } else {
-                val error = response.errorBody()?.string().orEmpty()
-                Toast.makeText(this, "Failed to update visit", Toast.LENGTH_SHORT).show()
-                System.err.println("[VisitorDashboard] Update visit failed: $error")
-            }
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error updating visit: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun updateQrSection(qrImageUrl: String?, qrSection: View, ivQRCode: ImageView, btnGenerateQR: TextView) {
-        if (qrImageUrl.isNullOrBlank()) {
-            qrSection.visibility = View.GONE
-            btnGenerateQR.visibility = View.VISIBLE
-            return
-        }
-
-        qrSection.visibility = View.VISIBLE
-        btnGenerateQR.visibility = View.GONE
-        com.bumptech.glide.Glide.with(this)
-            .load(qrImageUrl)
-            .fitCenter()
-            .into(ivQRCode)
-    }
-
-    private suspend fun generateQrForVisit(visitId: String, qrSection: View, ivQRCode: ImageView, btnGenerateQR: TextView) {
-        try {
-            val token = sessionManager.fetchAuthToken()
-            if (token.isNullOrBlank()) {
-                Toast.makeText(this, "Not authenticated", Toast.LENGTH_SHORT).show()
-                return
-            }
-
-            val response = RetrofitClient.visitService.generateVisitQr("Bearer $token", visitId)
-            if (response.isSuccessful) {
-                updateQrSection(response.body()?.qrImageUrl, qrSection, ivQRCode, btnGenerateQR)
-            } else {
-                Toast.makeText(this, "Failed to generate QR", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error generating QR: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private suspend fun sendQrEmail(visitId: String) {
-        try {
-            val token = sessionManager.fetchAuthToken()
-            if (token.isNullOrBlank()) {
-                Toast.makeText(this, "Not authenticated", Toast.LENGTH_SHORT).show()
-                return
-            }
-
-            val response = RetrofitClient.visitService.sendVisitQrEmail("Bearer $token", visitId)
-            if (response.isSuccessful) {
-                Toast.makeText(this, "QR sent to email", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "Failed to send QR email", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error sending email: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private suspend fun loadVisitFiles(visitId: String, tvIDDetail: TextView) {
+    private suspend fun loadVisitFiles(visitId: String, ivQRCode: ImageView, tvIDDetail: TextView) {
         try {
             val token = sessionManager.fetchAuthToken()
             if (token.isNullOrBlank()) {
@@ -852,9 +709,14 @@ class VisitorDashboardActivity : AppCompatActivity() {
                 val files = response.body() ?: emptyList()
                 if (files.isNotEmpty()) {
                     val firstFile = files[0]
-                    tvIDDetail.text = firstFile.fileName.ifBlank { "ID file" }
-                } else {
-                    tvIDDetail.text = "No ID file uploaded"
+                    // Load the file image using Glide
+                    com.bumptech.glide.Glide.with(this)
+                        .load(firstFile.fileUrl)
+                        .centerCrop()
+                        .into(ivQRCode)
+                    // Display file name from database
+                    tvIDDetail.text = firstFile.fileName
+                    ivQRCode.visibility = android.view.View.VISIBLE
                 }
             } else {
                 println("Failed to fetch files: ${response.code()}")
@@ -863,11 +725,6 @@ class VisitorDashboardActivity : AppCompatActivity() {
             println("Error loading files: ${e.message}")
             e.printStackTrace()
         }
-    }
-
-    private fun formatDateForDetails(dateString: String?): String {
-        if (dateString.isNullOrBlank()) return "N/A"
-        return dateString.take(10)
     }
 
     private fun formatDateForDisplay(dateString: String?): String {
@@ -888,10 +745,3 @@ class VisitorDashboardActivity : AppCompatActivity() {
         }
     }
 }
-
-private data class SupabaseUploadResult(
-    val path: String,
-    val publicUrl: String,
-    val originalFileName: String,
-    val fileType: String
-)
