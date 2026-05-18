@@ -71,6 +71,12 @@ android {
             "SUPABASE_STORAGE_BUCKET",
             androidString(envValue("SUPABASE_STORAGE_BUCKET").ifBlank { "kk_files" })
         )
+
+        buildConfigField(
+            "String",
+            "BASE_URL",
+            "\"https://knockknock.up.railway.app/api/\""
+        )
     }
 
     buildTypes {
