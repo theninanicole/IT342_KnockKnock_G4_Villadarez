@@ -62,7 +62,7 @@ public class SecurityConfig {
             public void addCorsMappings(CorsRegistry registry) {
 
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173", "http://10.0.2.2:8080")
+                        .allowedOrigins("http://localhost:5173", "http://10.0.2.2:8080", "https://knockknock.vercel.app")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
