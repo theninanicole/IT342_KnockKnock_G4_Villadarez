@@ -133,9 +133,11 @@ class AdminDashboardActivity : AppCompatActivity() {
     private fun renderCheckedIn(items: List<AdminVisit>) {
         binding.containerCheckedIn.removeAllViews()
         if (items.isEmpty()) {
+            binding.containerCheckedIn.background = null
             binding.containerCheckedIn.addView(AdminUi.text(this, "No visitors are currently checked in.", 14f, "#94A3B8"))
             return
         }
+        binding.containerCheckedIn.background = ContextCompat.getDrawable(this, R.drawable.bg_admin_list_card)
         items.forEachIndexed { index, visit ->
             if (index > 0) AdminUi.addDivider(binding.containerCheckedIn)
             val row = LinearLayout(this).apply {
@@ -167,9 +169,11 @@ class AdminDashboardActivity : AppCompatActivity() {
     private fun renderToday(items: List<AdminVisit>) {
         binding.containerTodaysVisitors.removeAllViews()
         if (items.isEmpty()) {
+            binding.containerTodaysVisitors.background = null
             binding.containerTodaysVisitors.addView(AdminUi.text(this, "No visitors scheduled for today.", 14f, "#94A3B8"))
             return
         }
+        binding.containerTodaysVisitors.background = ContextCompat.getDrawable(this, R.drawable.bg_admin_list_card)
         items.forEachIndexed { index, visit ->
             if (index > 0) AdminUi.addDivider(binding.containerTodaysVisitors)
             val row = LinearLayout(this).apply {
