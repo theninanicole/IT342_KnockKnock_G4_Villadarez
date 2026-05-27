@@ -31,12 +31,12 @@ export default function Sidebar({ role }) {
   const currentRole = role?.toUpperCase();
   const navItems = currentRole === "VISITOR" 
     ? [
-        { name: "Home", path: "/visitor-home", icon: <LayoutDashboard size={20} /> },
+        { name: "Dashboard", path: "/visitor-home", icon: <LayoutDashboard size={20} /> },
         { name: "My Visits", path: "/my-visits", icon: <CalendarDays size={20} /> },
         { name: "Notifications", path: "/notifications", icon: <Bell size={20} />, showBadge: true },
       ]
     : [
-        { name: "Home", path: "/admin-home", icon: <LayoutDashboard size={20} /> },
+        { name: "Dashboard", path: "/admin-home", icon: <LayoutDashboard size={20} /> },
         { name: "All Visits", path: "/all-visits", icon: <ClipboardList size={20} /> },
         { name: "Status History", path: "/status-history", icon: <History size={20} /> },
       ];

@@ -33,7 +33,7 @@ export default function VisitorDashboard() {
     <div className="flex min-h-screen min-w-full bg-slate-50">
       <Sidebar role="visitor" />
       <div className="flex flex-col flex-1">
-        <TopBar title="Home" />
+        <TopBar title="Dashboard" />
         <div className="w-full px-4 py-6 sm:px-8 sm:py-8">
           <WelcomeCard
             title={`Welcome, ${(user?.fullName?.split(" ")[0]) || "User"}!`}
