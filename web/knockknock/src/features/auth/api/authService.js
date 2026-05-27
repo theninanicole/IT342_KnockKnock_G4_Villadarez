@@ -129,9 +129,9 @@ export const handleLoginSubmit = async ({ email, password, login, navigate }) =>
     }
     await login(user, jwtToken);
     if (user.role === "VISITOR") {
-      navigate("/visitor-dashboard");
+      navigate("/visitor-home");
     } else if (user.role === "CONDOMINIUM_ADMIN") {
-      navigate("/admin-dashboard");
+      navigate("/admin-home");
     } else {
       navigate("/");
     }
@@ -168,9 +168,9 @@ export const handleRegisterSubmit = async ({ userRole, formData, login, navigate
     }
     await login(user, jwtToken);
     if (user.role === "VISITOR") {
-      navigate("/visitor-dashboard");
+      navigate("/visitor-home");
     } else if (user.role === "CONDOMINIUM_ADMIN") {
-      navigate("/admin-dashboard");
+      navigate("/admin-home");
     } else {
       navigate("/");
     }
@@ -207,9 +207,9 @@ export const handleGoogleLogin = async ({ login, navigate }) => {
     await login(user, jwtToken);
 
     if (user.role === "VISITOR") {
-      navigate("/visitor-dashboard");
+      navigate("/visitor-home");
     } else if (user.role === "CONDOMINIUM_ADMIN") {
-      navigate("/admin-dashboard");
+      navigate("/admin-home");
     } else {
       navigate("/");
     }
@@ -259,9 +259,9 @@ export const handleGoogleRegister = async ({ userRole, formData, login, navigate
     await login(user, jwtToken);
 
     if (user.role === "VISITOR") {
-      navigate("/visitor-dashboard");
+      navigate("/visitor-home");
     } else if (user.role === "CONDOMINIUM_ADMIN") {
-      navigate("/admin-dashboard");
+      navigate("/admin-home");
     } else {
       navigate("/");
     }

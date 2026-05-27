@@ -25,7 +25,7 @@ export default function AppRouter() {
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route
-          path="/visitor-dashboard"
+          path="/visitor-home"
           element={
             <ProtectedRoute allowedRoles={VISITOR_ONLY}>
               <VisitorDashboard />
@@ -49,7 +49,7 @@ export default function AppRouter() {
           }
         />
         <Route
-          path="/admin-dashboard"
+          path="/admin-home"
           element={
             <ProtectedRoute allowedRoles={ADMIN_ONLY}>
               <AdminDashboard />
@@ -57,7 +57,7 @@ export default function AppRouter() {
           }
         />
         <Route
-          path="/admin/all-visits"
+          path="/all-visits"
           element={
             <ProtectedRoute allowedRoles={ADMIN_ONLY}>
               <AllVisits />
@@ -65,7 +65,7 @@ export default function AppRouter() {
           }
         />
         <Route
-          path="/admin/history"
+          path="/status-history"
           element={
             <ProtectedRoute allowedRoles={ADMIN_ONLY}>
               <StatusHistory />

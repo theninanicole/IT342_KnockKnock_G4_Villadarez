@@ -4,11 +4,12 @@ import TopBar from "@components/shared/Topbar";
 import { AuthContext } from "@context/AuthContext";
 import VisitFilterBar from "@features/admin/components/VisitFilterBar";
 import AllVisitRow from "@features/admin/components/AllVisitRow";
+import AllVisitsStatsCard from "@features/admin/components/AllVisitsStatsCard";
 import { useAllVisitsList } from "@features/admin/hooks/useAllVisitsList";
 
 export default function AdminVisits() {
   const { user } = useContext(AuthContext);
-  const { activeFilter, setActiveFilter, visits, loading } = useAllVisitsList(user);
+  const { activeFilter, setActiveFilter, visits, allVisits, loading } = useAllVisitsList(user);
 
   return (
     <div className="flex min-h-screen min-w-full bg-slate-50">
@@ -17,6 +18,7 @@ export default function AdminVisits() {
         <TopBar title="Visits" />
         <div className="w-full px-4 py-6 sm:px-8 sm:py-8">
           <div className="w-full max-w-7xl mx-auto">
+            <AllVisitsStatsCard visits={allVisits} />
             <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4 mb-6">
                 <VisitFilterBar

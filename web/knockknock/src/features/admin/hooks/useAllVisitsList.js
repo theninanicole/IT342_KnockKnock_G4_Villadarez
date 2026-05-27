@@ -22,14 +22,17 @@ const statusParamMap = {
 export const useAllVisitsList = (user) => {
   const [activeFilter, setActiveFilter] = useState("All");
   const [visits, setVisits] = useState([]);
+  const [allVisits, setAllVisits] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const loadVisits = useCallback(async () => {
     try {
       setLoading(true);
+      const allData = await fetchAdminVisits(null);
+      setAllVisits(allData);
       const statusParam = statusParamMap[activeFilter] || null;
-      const data = await fetchAdminVisits(statusParam);
-      setVisits(data);
+      const filteredData = statusParam ? await fetchAdminVisits(statusParam) : allData;
+      setVisits(filteredData);
     } catch (error) {
       console.error("[useAllVisitsList] Error loading admin visits:", error);
     } finally {
@@ -82,6 +85,7 @@ export const useAllVisitsList = (user) => {
     activeFilter,
     setActiveFilter,
     visits,
+    allVisits,
     loading,
     loadVisits,
   };

@@ -3,8 +3,8 @@ import { AuthContext } from "@context/AuthContext";
 import { Navigate } from "react-router-dom";
 
 const ROLE_HOME = {
-  VISITOR: "/visitor-dashboard",
-  CONDOMINIUM_ADMIN: "/admin-dashboard",
+  VISITOR: "/visitor-home",
+  CONDOMINIUM_ADMIN: "/admin-home",
 };
 
 export default function ProtectedRoute({ children, allowedRoles }) {

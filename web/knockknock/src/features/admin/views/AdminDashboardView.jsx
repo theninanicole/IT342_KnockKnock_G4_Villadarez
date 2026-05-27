@@ -45,7 +45,7 @@ export default function AdminDashboard() {
     <div className="flex min-h-screen min-w-full bg-slate-50">
       <Sidebar role="ADMIN" />
       <div className="flex flex-col flex-1">
-        <TopBar title="Dashboard" />
+        <TopBar title="Home" />
 
         <div className="w-full px-4 py-6 sm:px-8 sm:py-8">
           <div className="w-full max-w-7xl mx-auto space-y-8">
